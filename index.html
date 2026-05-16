@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sahte Avcısı - Web Demo v0.2</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="game-container">
+
+    <header class="top-bar">
+      <div>
+        <h1>Sahte Avcısı</h1>
+        <p>Ekspertiz Simülatörü - Demo v0.2</p>
+      </div>
+
+      <div class="stats">
+        <div class="stat-box">
+          <span>Para</span>
+          <strong id="money">1000 TL</strong>
+        </div>
+
+        <div class="stat-box">
+          <span>İtibar</span>
+          <strong id="reputation">50</strong>
+        </div>
+
+        <div class="stat-box">
+          <span>Vaka</span>
+          <strong id="caseNumber">0 / 10</strong>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-card">
+
+      <section id="startScreen" class="screen active">
+        <h2>Ofisine hoş geldin.</h2>
+        <p>
+          Şüpheli ürünleri incele, kanıtları topla ve doğru kararı ver.
+          Dikkatli ol: kanıt toplamadan karar veremezsin.
+        </p>
+
+        <button class="primary-btn" onclick="startGame()">Oyuna Başla</button>
+      </section>
+
+      <section id="caseScreen" class="screen">
+        <div class="customer-box">
+          <div id="customerAvatar" class="customer-avatar">🧍</div>
+          <div>
+            <h2 id="customerName">Müşteri</h2>
+            <p id="customerStory">Müşteri hikayesi burada görünecek.</p>
+          </div>
+        </div>
+
+        <div class="product-card">
+          <h3 id="productName">Ürün Adı</h3>
+          <p id="productClaim">İddia edilen bilgi</p>
+          <p id="productValue">Değer: 0 TL</p>
+        </div>
+
+        <div class="tools">
+          <h3>İnceleme Araçları</h3>
+
+          <button onclick="inspect('serial')">Seri No Kontrol Et</button>
+          <button onclick="inspect('magnifier')">Büyüteçle İncele</button>
+          <button onclick="inspect('invoice')">Fatura Kontrol Et</button>
+        </div>
+
+        <div class="evidence-box">
+          <h3>Bulunan Kanıtlar</h3>
+          <ul id="evidenceList">
+            <li>Henüz inceleme yapılmadı.</li>
+          </ul>
+        </div>
+
+        <div class="decision-box">
+          <h3>Kararın ne?</h3>
+
+          <button onclick="makeDecision('gercek')">Gerçek</button>
+          <button onclick="makeDecision('sahte')">Sahte</button>
+          <button onclick="makeDecision('supheli')">Şüpheli</button>
+
+          <p id="warningText" class="warning-text"></p>
+        </div>
+      </section>
+
+      <section id="resultScreen" class="screen">
+        <h2 id="resultTitle">Sonuç</h2>
+        <div id="resultDetails" class="result-details"></div>
+        <p id="resultText">Sonuç açıklaması burada.</p>
+
+        <button class="primary-btn" onclick="nextCase()">Sonraki Vaka</button>
+      </section>
+
+      <section id="endScreen" class="screen">
+        <h2>Demo Bitti</h2>
+        <p id="finalResult">Final sonucu burada.</p>
+
+        <button class="primary-btn" onclick="restartGame()">Tekrar Oyna</button>
+      </section>
+
+    </main>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
