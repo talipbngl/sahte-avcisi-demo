@@ -35,6 +35,10 @@ function resetState() {
 
   state.currentEvent = null;
   state.lastReview = null;
+  state.selectedVerdict = null;
+  state.selectedProblem = null;
+  state.networkProgress = {};
+  state.solvedNetworks = {};
 }
 
 function clamp(value, min, max) {
@@ -50,5 +54,14 @@ function answerToText(answer) {
 
   return "Bilinmiyor";
 }
+function problemToText(problem) {
+  if (problem === "no_problem") return "Problem Yok";
+  if (problem === "fake_product") return "Ürün Sahte";
+  if (problem === "seller_scam") return "Satıcı Dolandırıcı";
+  if (problem === "misrepresented") return "Ürün Gerçek Ama Eksik Beyan";
+  if (problem === "customer_lie") return "Müşteri Yalan Söylüyor";
+  if (problem === "document_issue") return "Belge / Fatura Sorunlu";
 
+  return "Bilinmiyor";
+}
 resetState();

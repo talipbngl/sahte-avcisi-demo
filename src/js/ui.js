@@ -70,7 +70,9 @@ function loadCaseUI(currentCase) {
   qs("warningText").textContent = "";
 
   qs("evidenceList").innerHTML = "<li>Henüz inceleme yapılmadı.</li>";
-
+  renderPublicClues(currentCase.publicClues);
+  clearSelections();
+  hideNetworkBox();
   renderToolButtons();
   updateAnalysisPanel();
   updateOfficePanel();
@@ -112,17 +114,17 @@ function renderEvidence() {
   state.collectedEvidence.forEach(evidence => {
     const li = document.createElement("li");
 
-    const upgradeText = evidence.upgraded
-      ? " Geliştirilmiş ekipmanla daha detaylı incelendi."
-      : "";
-
-    li.textContent = getPlayerFacingEvidenceText(evidence) + upgradeText;
+    if (evidence.upgraded) {
+      li.textContent = getUpgradedEvidenceText(evidence);
+    } else {
+      li.textContent = getBasicEvidenceText(evidence);
+    }
 
     evidenceList.appendChild(li);
   });
 }
 
-function getPlayerFacingEvidenceText(evidence) {
+function getBasicEvidenceText(evidence) {
   const impact = Math.abs(evidence.fakeImpact);
 
   if (impact >= 30 && evidence.fakeImpact > 0) {
@@ -134,7 +136,7 @@ function getPlayerFacingEvidenceText(evidence) {
   }
 
   if (impact >= 15 && evidence.fakeImpact > 0) {
-    return evidence.name + ": Bazı detaylar soru işareti oluşturuyor. Bu bulgu tek başına yeterli değil.";
+    return evidence.name + ": Bazı detaylar soru işareti oluşturuyor.";
   }
 
   if (impact >= 15 && evidence.fakeImpact < 0) {
@@ -142,6 +144,36 @@ function getPlayerFacingEvidenceText(evidence) {
   }
 
   return evidence.name + ": Net olmayan, yoruma açık bir sonuç verdi.";
+}
+
+function getUpgradedEvidenceText(evidence) {
+  const impact = Math.abs(evidence.fakeImpact);
+
+  if (impact >= 35 && evidence.fakeImpact > 0) {
+    return evidence.name + ": Gelişmiş analiz sonucu ciddi tutarsızlık tespit edildi. Yüksek ihtimalle ürünün orijinallik iddiası sorunlu. Detay: " + evidence.text;
+  }
+
+  if (impact >= 35 && evidence.fakeImpact < 0) {
+    return evidence.name + ": Gelişmiş analiz sonucu ürünün iddiasını güçlü şekilde destekleyen bulgular bulundu. Yüksek ihtimalle ürün güvenilir görünüyor. Detay: " + evidence.text;
+  }
+
+  if (impact >= 20 && evidence.fakeImpact > 0) {
+    return evidence.name + ": Gelişmiş analiz sonucu orta-yüksek seviyede şüphe oluştu. Ürün sahte, değişmiş veya eksik beyan edilmiş olabilir. Detay: " + evidence.text;
+  }
+
+  if (impact >= 20 && evidence.fakeImpact < 0) {
+    return evidence.name + ": Gelişmiş analiz sonucu olumlu işaretler ağır basıyor. Yine de tek başına kesin karar sayılmaz. Detay: " + evidence.text;
+  }
+
+  if (evidence.fakeImpact > 0) {
+    return evidence.name + ": Gelişmiş analiz hafif bir şüphe gösteriyor. Karar için başka bulgu gerekebilir. Detay: " + evidence.text;
+  }
+
+  if (evidence.fakeImpact < 0) {
+    return evidence.name + ": Gelişmiş analiz hafif olumlu sonuç verdi. Karar için başka bulgu gerekebilir. Detay: " + evidence.text;
+  }
+
+  return evidence.name + ": Gelişmiş analiz net bir tarafa işaret etmedi. Detay: " + evidence.text;
 }
 
 function updateAnalysisPanel() {
@@ -170,7 +202,7 @@ function showEventBanner(event) {
   eventBox.classList.remove("hidden");
 }
 
-function renderResultDetails(playerAnswer, correctAnswer, rewardData) {
+function renderResultDetails(playerAnswer, correctAnswer, playerProblem, correctProblem, rewardData) {
   const moneyText = rewardData.moneyChange > 0
     ? "+" + rewardData.moneyChange + " TL"
     : rewardData.moneyChange + " TL";
@@ -182,11 +214,14 @@ function renderResultDetails(playerAnswer, correctAnswer, rewardData) {
   qs("resultDetails").innerHTML = `
     <p><strong>Senin kararın:</strong> ${answerToText(playerAnswer)}</p>
     <p><strong>Doğru karar:</strong> ${answerToText(correctAnswer)}</p>
-    <p><strong>Karar tarzı:</strong> ${rewardData.riskLabel}</p>
-    <p><strong>Toplanan kanıt:</strong> ${state.collectedEvidence.length} / ${settings.maxEvidencePerCase}</p>
+    <p><strong>Seçtiğin ana problem:</strong> ${problemToText(playerProblem)}</p>
+    <p><strong>Doğru ana problem:</strong> ${problemToText(correctProblem)}</p>
+    <p><strong>Rapor kalitesi:</strong> ${rewardData.reportLabel}</p>
+    <p><strong>Toplanan ipucu:</strong> ${state.collectedEvidence.length} / ${settings.maxEvidencePerCase}</p>
     <p><strong>İnceleme masrafı:</strong> ${getTotalInspectionCost()} TL</p>
     <p><strong>Gizli şüphe skoru:</strong> %${state.fakeChance}</p>
     <p><strong>Risk bonusu:</strong> ${rewardData.riskBonus} TL</p>
+    <p><strong>Sebep bonusu:</strong> ${rewardData.problemBonus} TL</p>
     <p><strong>Seri bonusu:</strong> ${rewardData.streakBonus} TL</p>
     <p><strong>Doğru karar serisi:</strong> ${state.correctStreak}</p>
     <p><strong>Aktif ofis geliştirmesi:</strong> ${getActiveUpgradeCount()} / 3</p>
@@ -221,4 +256,65 @@ function renderExpenseScreen(paidAmount, debtAmount, rentMessage) {
   `;
 
   qs("expenseText").textContent = rentMessage;
+}
+function renderPublicClues(publicClues) {
+  const list = qs("publicClueList");
+
+  list.innerHTML = "";
+
+  publicClues.forEach(clue => {
+    const li = document.createElement("li");
+    li.textContent = clue;
+    list.appendChild(li);
+  });
+}
+
+function clearSelections() {
+  document.querySelectorAll(".decision-buttons button").forEach(button => {
+    button.classList.remove("selected");
+  });
+
+  document.querySelectorAll(".problem-buttons button").forEach(button => {
+    button.classList.remove("selected");
+  });
+}
+
+function updateVerdictSelection() {
+  document.querySelectorAll(".decision-buttons button").forEach(button => {
+    button.classList.remove("selected");
+  });
+
+  if (state.selectedVerdict) {
+    qs("verdict-" + state.selectedVerdict).classList.add("selected");
+  }
+}
+
+function updateProblemSelection() {
+  document.querySelectorAll(".problem-buttons button").forEach(button => {
+    button.classList.remove("selected");
+  });
+
+  if (state.selectedProblem) {
+    qs("problem-" + state.selectedProblem).classList.add("selected");
+  }
+}
+
+function hideNetworkBox() {
+  const box = qs("networkBox");
+
+  if (!box) return;
+
+  box.classList.add("hidden");
+  box.innerHTML = "";
+}
+
+function showNetworkBox(title, text) {
+  const box = qs("networkBox");
+
+  box.innerHTML = `
+    <h3>${title}</h3>
+    <p>${text}</p>
+  `;
+
+  box.classList.remove("hidden");
 }

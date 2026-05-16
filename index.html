@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Sahte Avcısı - Web Demo v0.8</title>
+  <title>Sahte Avcısı - Web Demo v1.0</title>
 
   <link rel="stylesheet" href="src/css/style.css" />
 </head>
@@ -15,7 +15,7 @@
     <header class="top-bar">
       <div>
         <h1>Sahte Avcısı</h1>
-        <p>Ekspertiz Simülatörü - Demo v0.8 Risk Modu</p>
+        <p>Ekspertiz Simülatörü - Demo v1.0 Vaka Panosu</p>
       </div>
 
       <div class="stats">
@@ -51,8 +51,8 @@
       <section id="startScreen" class="screen active">
         <h2>Ofisine hoş geldin.</h2>
         <p>
-          Şüpheli ürünleri incele, doğru kararı ver, müşteri yorumlarını yükselt
-          ve ofisini ayakta tut. Artık doğru karar serisi ve rastgele ofis olayları da var.
+          Artık sadece sahte mi gerçek mi karar vermiyorsun. Vaka panosundaki genel bilgileri oku,
+          incelemelerle özel ipuçlarını aç ve olayın asıl problemini çöz.
         </p>
 
         <button class="primary-btn" onclick="startGame()">Oyuna Başla</button>
@@ -80,6 +80,15 @@
           <p id="productValue">Değer: 0 TL</p>
         </div>
 
+        <div class="case-board">
+          <h3>Vaka Panosu</h3>
+          <p class="board-subtitle">Bu bilgiler baştan görünür. Tek başına cevap değildir, olayın kokusunu verir.</p>
+
+          <ul id="publicClueList" class="clue-list">
+            <li>Genel bilgiler burada görünecek.</li>
+          </ul>
+        </div>
+
         <div class="analysis-panel">
           <div>
             <span>Dosya Durumu</span>
@@ -92,7 +101,7 @@
           </div>
 
           <div>
-            <span>Toplanan Kanıt</span>
+            <span>Açılan İpucu</span>
             <strong id="evidenceCounter">0 / 3</strong>
           </div>
 
@@ -135,21 +144,21 @@
 
             <div class="upgrade-card">
               <h4>Seri No Veri Tabanı</h4>
-              <p>Seri numarası kontrollerini güçlendirir.</p>
+              <p>Seri numarası kontrollerinde daha net ipucu verir.</p>
               <strong id="upgradeSerialStatus">Alınmadı</strong>
               <button id="upgradeSerialBtn" onclick="buyUpgrade('serial')">650 TL'ye Al</button>
             </div>
 
             <div class="upgrade-card">
               <h4>Pro Büyüteç</h4>
-              <p>Fiziksel inceleme kanıtlarını daha etkili yapar.</p>
+              <p>Fiziksel incelemelerde daha güçlü ipucu verir.</p>
               <strong id="upgradeMagnifierStatus">Alınmadı</strong>
               <button id="upgradeMagnifierBtn" onclick="buyUpgrade('magnifier')">500 TL'ye Al</button>
             </div>
 
             <div class="upgrade-card">
               <h4>Fatura Doğrulama Yazılımı</h4>
-              <p>Fatura kontrollerinden daha net sonuç alırsın.</p>
+              <p>Belge ve fatura kontrollerinde daha net ipucu verir.</p>
               <strong id="upgradeInvoiceStatus">Alınmadı</strong>
               <button id="upgradeInvoiceBtn" onclick="buyUpgrade('invoice')">600 TL'ye Al</button>
             </div>
@@ -160,26 +169,41 @@
         <div class="tools">
           <h3>İnceleme Araçları</h3>
           <p class="tool-info">
-            Her vakada en fazla 3 inceleme yapabilirsin. Her inceleme para harcatır.
+            Her vakada en fazla 3 inceleme yapabilirsin. Az inceleme = yüksek risk, yüksek kazanç.
           </p>
 
           <div id="toolButtons" class="tool-buttons"></div>
         </div>
 
         <div class="evidence-box">
-          <h3>Bulunan Kanıtlar</h3>
+          <h3>Açılan Özel İpuçları</h3>
 
           <ul id="evidenceList">
-            <li>Henüz inceleme yapılmadı.</li>
+            <li>Henüz özel ipucu açılmadı.</li>
           </ul>
         </div>
 
         <div class="decision-box">
-          <h3>Kararın ne?</h3>
+          <h3>1. Kararın ne?</h3>
 
-          <button onclick="makeDecision('gercek')">Gerçek</button>
-          <button onclick="makeDecision('sahte')">Sahte</button>
-          <button onclick="makeDecision('supheli')">Şüpheli</button>
+          <div class="decision-buttons">
+            <button id="verdict-gercek" onclick="selectVerdict('gercek')">Gerçek</button>
+            <button id="verdict-sahte" onclick="selectVerdict('sahte')">Sahte</button>
+            <button id="verdict-supheli" onclick="selectVerdict('supheli')">Şüpheli</button>
+          </div>
+
+          <h3 class="problem-title">2. Ana problem nerede?</h3>
+
+          <div class="problem-buttons">
+            <button id="problem-no_problem" onclick="selectProblem('no_problem')">Problem Yok</button>
+            <button id="problem-fake_product" onclick="selectProblem('fake_product')">Ürün Sahte</button>
+            <button id="problem-seller_scam" onclick="selectProblem('seller_scam')">Satıcı Dolandırıcı</button>
+            <button id="problem-misrepresented" onclick="selectProblem('misrepresented')">Eksik Beyan</button>
+            <button id="problem-customer_lie" onclick="selectProblem('customer_lie')">Müşteri Yalanı</button>
+            <button id="problem-document_issue" onclick="selectProblem('document_issue')">Belge Sorunlu</button>
+          </div>
+
+          <button class="primary-btn report-btn" onclick="submitReport()">Raporu Gönder</button>
 
           <p id="warningText" class="warning-text"></p>
         </div>
@@ -192,6 +216,8 @@
         <div id="resultDetails" class="result-details"></div>
 
         <p id="resultText">Sonuç açıklaması burada.</p>
+
+        <div id="networkBox" class="network-box hidden"></div>
 
         <div id="reviewBox" class="review-box"></div>
 

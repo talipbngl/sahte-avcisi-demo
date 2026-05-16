@@ -1,33 +1,27 @@
-function calculateReward(isCorrect, evidenceCount) {
-  if (!isCorrect) {
+function calculateReward(isVerdictCorrect, isProblemCorrect, evidenceCount) {
+  if (!isVerdictCorrect) {
     state.correctStreak = 0;
 
+    let penalty = -220;
+    let reputationPenalty = -5;
+
     if (evidenceCount === 1) {
-      return {
-        moneyChange: -900,
-        reputationChange: -16,
-        streakBonus: 0,
-        riskBonus: 0,
-        riskLabel: "Aşırı Riskli Yanlış Karar"
-      };
+      penalty = -900;
+      reputationPenalty = -16;
     }
 
     if (evidenceCount === 2) {
-      return {
-        moneyChange: -500,
-        reputationChange: -10,
-        streakBonus: 0,
-        riskBonus: 0,
-        riskLabel: "Riskli Yanlış Karar"
-      };
+      penalty = -500;
+      reputationPenalty = -10;
     }
 
     return {
-      moneyChange: -220,
-      reputationChange: -5,
+      moneyChange: penalty,
+      reputationChange: reputationPenalty,
       streakBonus: 0,
       riskBonus: 0,
-      riskLabel: "Güvenli Ama Yanlış Karar"
+      problemBonus: 0,
+      reportLabel: "Yanlış Rapor"
     };
   }
 
@@ -37,39 +31,46 @@ function calculateReward(isCorrect, evidenceCount) {
   let baseMoney = 250;
   let baseReputation = 3;
   let riskBonus = 0;
-  let riskLabel = "Güvenli Karar";
 
   if (evidenceCount === 1) {
     baseMoney = 350;
     baseReputation = 5;
     riskBonus = 450;
-    riskLabel = "Cesur Hızlı Karar";
   }
 
   if (evidenceCount === 2) {
     baseMoney = 350;
     baseReputation = 4;
     riskBonus = 180;
-    riskLabel = "Dengeli Karar";
   }
 
   if (evidenceCount >= 3) {
     baseMoney = 250;
     baseReputation = 3;
     riskBonus = 0;
-    riskLabel = "Güvenli Karar";
   }
+
+  const problemBonus = isProblemCorrect ? 300 : -120;
 
   const streakBonus = state.correctStreak >= 2
     ? state.correctStreak * 70
     : 0;
 
+  const reportLabel = isProblemCorrect
+    ? "Tam İsabet Rapor"
+    : "Karar Doğru, Sebep Hatalı";
+
+  const reputationChange = isProblemCorrect
+    ? baseReputation + 2
+    : baseReputation - 2;
+
   return {
-    moneyChange: baseMoney + riskBonus + streakBonus,
-    reputationChange: baseReputation,
+    moneyChange: baseMoney + riskBonus + problemBonus + streakBonus,
+    reputationChange,
     streakBonus,
     riskBonus,
-    riskLabel
+    problemBonus,
+    reportLabel
   };
 }
 

@@ -11,6 +11,8 @@ function restartGame() {
 function loadCase() {
   state.collectedEvidence = [];
   state.fakeChance = 50;
+  state.selectedVerdict = null;
+  state.selectedProblem = null;
 
   const currentCase = cases[state.currentCaseIndex];
 
@@ -68,38 +70,77 @@ function inspect(toolId) {
   updateStats();
 }
 
-function makeDecision(playerAnswer) {
+function selectVerdict(verdict) {
+  state.selectedVerdict = verdict;
+  updateVerdictSelection();
+  showWarning("");
+}
+
+function selectProblem(problem) {
+  state.selectedProblem = problem;
+  updateProblemSelection();
+  showWarning("");
+}
+
+function submitReport() {
   if (state.collectedEvidence.length === 0) {
-    showWarning("Önce en az 1 kanıt toplamalısın kral. Direkt karar vermek riskli.");
+    showWarning("Önce en az 1 özel ipucu açmalısın kral. Hiç inceleme yapmadan rapor gönderemezsin.");
+    return;
+  }
+
+  if (!state.selectedVerdict) {
+    showWarning("Önce kararını seçmelisin: Gerçek, Sahte veya Şüpheli.");
+    return;
+  }
+
+  if (!state.selectedProblem) {
+    showWarning("Ana problemi de seçmelisin. Artık sadece karar yetmiyor.");
     return;
   }
 
   const currentCase = cases[state.currentCaseIndex];
-  const isCorrect = playerAnswer === currentCase.correctAnswer;
 
-  if (isCorrect) {
+  const isVerdictCorrect = state.selectedVerdict === currentCase.correctAnswer;
+  const isProblemCorrect = state.selectedProblem === currentCase.correctProblem;
+
+  if (isVerdictCorrect) {
     state.correctDecisions++;
   }
 
-  const rewardData = calculateReward(isCorrect, state.collectedEvidence.length);
+  const rewardData = calculateReward(
+    isVerdictCorrect,
+    isProblemCorrect,
+    state.collectedEvidence.length
+  );
 
   state.money += rewardData.moneyChange;
   state.reputation += rewardData.reputationChange;
   state.reputation = clamp(state.reputation, 0, 100);
 
-  const review = buildReview(isCorrect, state.collectedEvidence.length);
+  const review = buildReview(isVerdictCorrect && isProblemCorrect, state.collectedEvidence.length);
   state.lastReview = review;
 
-  if (isCorrect) {
-    qs("resultTitle").textContent = "Doğru Karar!";
+  if (isVerdictCorrect && isProblemCorrect) {
+    qs("resultTitle").textContent = "Tam İsabet!";
     qs("resultTitle").className = "correct";
+  } else if (isVerdictCorrect) {
+    qs("resultTitle").textContent = "Karar Doğru, Sebep Hatalı!";
+    qs("resultTitle").className = "neutral";
   } else {
-    qs("resultTitle").textContent = "Yanlış Karar!";
+    qs("resultTitle").textContent = "Yanlış Rapor!";
     qs("resultTitle").className = "wrong";
   }
 
-  renderResultDetails(playerAnswer, currentCase.correctAnswer, rewardData);
+  renderResultDetails(
+    state.selectedVerdict,
+    currentCase.correctAnswer,
+    state.selectedProblem,
+    currentCase.correctProblem,
+    rewardData
+  );
+
   renderReview(review);
+  handleNetworkProgress(currentCase, isVerdictCorrect, isProblemCorrect);
 
   qs("resultText").textContent = currentCase.resultExplanation;
 
@@ -203,4 +244,48 @@ function finishGame() {
     message;
 
   showScreen("endScreen");
+}
+function handleNetworkProgress(currentCase, isVerdictCorrect, isProblemCorrect) {
+  hideNetworkBox();
+
+  if (!currentCase.networkTag) {
+    return;
+  }
+
+  if (!isVerdictCorrect || !isProblemCorrect) {
+    showNetworkBox(
+      "Bağlantı Kaçtı",
+      "Bu vaka bir ağa bağlı olabilir ama raporda yeterince doğru sonuca ulaşamadığın için bağlantı kurulamadı."
+    );
+    return;
+  }
+
+  const tag = currentCase.networkTag;
+
+  if (!state.networkProgress[tag]) {
+    state.networkProgress[tag] = 0;
+  }
+
+  state.networkProgress[tag]++;
+
+  if (state.networkProgress[tag] >= 2 && !state.solvedNetworks[tag]) {
+    state.solvedNetworks[tag] = true;
+
+    state.money += 1000;
+    state.reputation += 10;
+    state.reputation = clamp(state.reputation, 0, 100);
+
+    showNetworkBox(
+      "Dolandırıcı Ağı Yakalandı!",
+      "Birden fazla vakada ortak iz buldun. Aynı ödeme/satış ağına bağlı dosyaları çözdüğün için +1000 TL ve +10 itibar kazandın."
+    );
+
+    updateStats();
+    return;
+  }
+
+  showNetworkBox(
+    "Bağlantı İzi Bulundu",
+    "Bu dosyada daha büyük bir satış ağına ait iz yakaladın. Benzer bir vaka daha çözersen operasyon bonusu açılabilir."
+  );
 }
