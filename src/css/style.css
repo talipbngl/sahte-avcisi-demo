@@ -197,6 +197,7 @@ body {
   color: #ffd36a;
 }
 
+.upgrade-box,
 .tools,
 .evidence-box,
 .decision-box {
@@ -207,6 +208,7 @@ body {
   margin-bottom: 22px;
 }
 
+.upgrade-box h3,
 .tools h3,
 .evidence-box h3,
 .decision-box h3 {
@@ -214,6 +216,38 @@ body {
   color: #ffd36a;
 }
 
+.upgrade-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.upgrade-card {
+  background: #151a29;
+  border: 1px solid #34405f;
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.upgrade-card h4 {
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.upgrade-card p {
+  color: #bfc6dc;
+  line-height: 1.4;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.upgrade-card strong {
+  display: block;
+  color: #ffcf6a;
+  margin-bottom: 12px;
+}
+
+.upgrade-card button,
 .tools button,
 .decision-box button {
   background: #303954;
@@ -226,9 +260,15 @@ body {
   font-size: 15px;
 }
 
+.upgrade-card button:hover,
 .tools button:hover,
 .decision-box button:hover {
   background: #47557b;
+}
+
+.upgrade-card button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .evidence-box ul {
@@ -273,9 +313,13 @@ body {
   color: #ffd36a !important;
 }
 
-@media (max-width: 850px) {
+@media (max-width: 900px) {
   .analysis-panel {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .upgrade-grid {
+    grid-template-columns: 1fr;
   }
 }
 

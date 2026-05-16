@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Sahte Avcısı - Web Demo v0.3</title>
+  <title>Sahte Avcısı - Web Demo v0.4</title>
 
   <link rel="stylesheet" href="src/css/style.css" />
 </head>
@@ -15,7 +15,7 @@
     <header class="top-bar">
       <div>
         <h1>Sahte Avcısı</h1>
-        <p>Ekspertiz Simülatörü - Demo v0.3</p>
+        <p>Ekspertiz Simülatörü - Demo v0.4</p>
       </div>
 
       <div class="stats">
@@ -42,8 +42,7 @@
         <h2>Ofisine hoş geldin.</h2>
         <p>
           Şüpheli ürünleri incele, kanıtları topla ve doğru kararı ver.
-          Her kanıt sahte olma ihtimalini etkiler. Ne kadar çok kanıt toplarsan,
-          kararın o kadar güvenilir olur.
+          Kazandığın parayla ofis ekipmanlarını geliştirerek daha güçlü analizler yapabilirsin.
         </p>
 
         <button class="primary-btn" onclick="startGame()">Oyuna Başla</button>
@@ -85,6 +84,35 @@
           <div>
             <span>Karar Güveni</span>
             <strong id="confidenceLevel">Düşük</strong>
+          </div>
+        </div>
+
+        <div class="upgrade-box">
+          <h3>Ofis Geliştirmeleri</h3>
+
+          <div class="upgrade-grid">
+
+            <div class="upgrade-card">
+              <h4>Seri No Veri Tabanı</h4>
+              <p>Seri numarası kontrollerini güçlendirir.</p>
+              <strong id="upgradeSerialStatus">Alınmadı</strong>
+              <button id="upgradeSerialBtn" onclick="buyUpgrade('serial')">650 TL'ye Al</button>
+            </div>
+
+            <div class="upgrade-card">
+              <h4>Pro Büyüteç</h4>
+              <p>Fiziksel inceleme kanıtlarını daha etkili yapar.</p>
+              <strong id="upgradeMagnifierStatus">Alınmadı</strong>
+              <button id="upgradeMagnifierBtn" onclick="buyUpgrade('magnifier')">500 TL'ye Al</button>
+            </div>
+
+            <div class="upgrade-card">
+              <h4>Fatura Doğrulama Yazılımı</h4>
+              <p>Fatura kontrollerinden daha net sonuç alırsın.</p>
+              <strong id="upgradeInvoiceStatus">Alınmadı</strong>
+              <button id="upgradeInvoiceBtn" onclick="buyUpgrade('invoice')">600 TL'ye Al</button>
+            </div>
+
           </div>
         </div>
 

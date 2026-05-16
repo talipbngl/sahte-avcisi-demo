@@ -5,6 +5,18 @@ let collectedEvidence = [];
 let correctDecisions = 0;
 let fakeChance = 50;
 
+let upgrades = {
+  serial: false,
+  magnifier: false,
+  invoice: false
+};
+
+const upgradePrices = {
+  serial: 650,
+  magnifier: 500,
+  invoice: 600
+};
+
 function startGame() {
   money = 1000;
   reputation = 50;
@@ -13,7 +25,14 @@ function startGame() {
   correctDecisions = 0;
   fakeChance = 50;
 
+  upgrades = {
+    serial: false,
+    magnifier: false,
+    invoice: false
+  };
+
   updateStats();
+  updateUpgradePanel();
   loadCase();
   showScreen("caseScreen");
 }
@@ -62,7 +81,71 @@ function loadCase() {
   evidenceList.innerHTML = "<li>Henüz inceleme yapılmadı.</li>";
 
   updateAnalysisPanel();
+  updateUpgradePanel();
   updateStats();
+}
+
+function buyUpgrade(type) {
+  if (upgrades[type]) {
+    showWarning("Bu geliştirmeyi zaten aldın kral.");
+    return;
+  }
+
+  const price = upgradePrices[type];
+
+  if (money < price) {
+    showWarning("Bu geliştirme için yeterli paran yok. Birkaç vaka daha çözmen lazım.");
+    return;
+  }
+
+  money -= price;
+  upgrades[type] = true;
+
+  showWarning(getUpgradeName(type) + " satın alındı. Bu araç artık daha güçlü analiz yapacak.");
+
+  updateStats();
+  updateUpgradePanel();
+}
+
+function getUpgradeName(type) {
+  if (type === "serial") {
+    return "Seri No Veri Tabanı";
+  }
+
+  if (type === "magnifier") {
+    return "Pro Büyüteç";
+  }
+
+  if (type === "invoice") {
+    return "Fatura Doğrulama Yazılımı";
+  }
+
+  return "Geliştirme";
+}
+
+function updateUpgradePanel() {
+  updateSingleUpgrade("serial", "upgradeSerialStatus", "upgradeSerialBtn");
+  updateSingleUpgrade("magnifier", "upgradeMagnifierStatus", "upgradeMagnifierBtn");
+  updateSingleUpgrade("invoice", "upgradeInvoiceStatus", "upgradeInvoiceBtn");
+}
+
+function updateSingleUpgrade(type, statusId, buttonId) {
+  const statusElement = document.getElementById(statusId);
+  const buttonElement = document.getElementById(buttonId);
+
+  if (!statusElement || !buttonElement) {
+    return;
+  }
+
+  if (upgrades[type]) {
+    statusElement.textContent = "Aktif";
+    buttonElement.textContent = "Alındı";
+    buttonElement.disabled = true;
+  } else {
+    statusElement.textContent = "Alınmadı";
+    buttonElement.textContent = upgradePrices[type] + " TL'ye Al";
+    buttonElement.disabled = false;
+  }
 }
 
 function inspect(type) {
@@ -72,24 +155,45 @@ function inspect(type) {
   const alreadyCollected = collectedEvidence.some(item => item.type === type);
 
   if (alreadyCollected) {
-    document.getElementById("warningText").textContent =
-      "Bu incelemeyi zaten yaptın kral. Başka bir araç dene.";
+    showWarning("Bu incelemeyi zaten yaptın kral. Başka bir araç dene.");
     return;
   }
+
+  const effectiveImpact = calculateEffectiveImpact(type, evidenceData.fakeImpact);
 
   collectedEvidence.push({
     type: type,
     text: evidenceData.text,
-    fakeImpact: evidenceData.fakeImpact
+    baseImpact: evidenceData.fakeImpact,
+    fakeImpact: effectiveImpact,
+    upgraded: upgrades[type]
   });
 
-  fakeChance += evidenceData.fakeImpact;
+  fakeChance += effectiveImpact;
   fakeChance = clamp(fakeChance, 0, 100);
 
-  document.getElementById("warningText").textContent = "";
+  showWarning("");
 
   renderEvidence();
   updateAnalysisPanel();
+}
+
+function calculateEffectiveImpact(type, baseImpact) {
+  if (!upgrades[type]) {
+    return baseImpact;
+  }
+
+  const upgradeBonus = 10;
+
+  if (baseImpact > 0) {
+    return baseImpact + upgradeBonus;
+  }
+
+  if (baseImpact < 0) {
+    return baseImpact - upgradeBonus;
+  }
+
+  return baseImpact;
 }
 
 function renderEvidence() {
@@ -103,7 +207,11 @@ function renderEvidence() {
       ? "Sahte ihtimalini artırdı"
       : "Sahte ihtimalini düşürdü";
 
-    li.textContent = evidence.text + " (" + impactText + ")";
+    const upgradeText = evidence.upgraded
+      ? " | Geliştirilmiş araç bonusu aktif"
+      : "";
+
+    li.textContent = evidence.text + " (" + impactText + upgradeText + ")";
 
     evidenceList.appendChild(li);
   });
@@ -142,8 +250,7 @@ function getConfidenceLevel(evidenceCount) {
 
 function makeDecision(playerAnswer) {
   if (collectedEvidence.length === 0) {
-    document.getElementById("warningText").textContent =
-      "Önce en az 1 kanıt toplamalısın kral. Direkt karar vermek riskli.";
+    showWarning("Önce en az 1 kanıt toplamalısın kral. Direkt karar vermek riskli.");
     return;
   }
 
@@ -235,15 +342,36 @@ function renderResultDetails(playerAnswer, correctAnswer, moneyChange, reputatio
   const moneyText = moneyChange > 0 ? "+" + moneyChange + " TL" : moneyChange + " TL";
   const reputationText = reputationChange > 0 ? "+" + reputationChange : reputationChange;
 
+  const activeUpgrades = getActiveUpgradeCount();
+
   resultDetails.innerHTML = `
     <p><strong>Senin kararın:</strong> ${answerToText(playerAnswer)}</p>
     <p><strong>Doğru karar:</strong> ${answerToText(correctAnswer)}</p>
     <p><strong>Toplanan kanıt:</strong> ${evidenceCount} / 3</p>
     <p><strong>Son sahte olma ihtimali:</strong> %${fakeChance}</p>
     <p><strong>Karar güveni:</strong> ${getConfidenceLevel(evidenceCount)}</p>
+    <p><strong>Aktif ofis geliştirmesi:</strong> ${activeUpgrades} / 3</p>
     <p><strong>Para değişimi:</strong> ${moneyText}</p>
     <p><strong>İtibar değişimi:</strong> ${reputationText}</p>
   `;
+}
+
+function getActiveUpgradeCount() {
+  let count = 0;
+
+  if (upgrades.serial) {
+    count++;
+  }
+
+  if (upgrades.magnifier) {
+    count++;
+  }
+
+  if (upgrades.invoice) {
+    count++;
+  }
+
+  return count;
 }
 
 function answerToText(answer) {
@@ -277,9 +405,14 @@ function finishGame() {
   let title = "";
   let message = "";
 
-  if (correctDecisions >= 9) {
+  const activeUpgrades = getActiveUpgradeCount();
+
+  if (correctDecisions >= 9 && activeUpgrades >= 2) {
+    title = "Profesyonel Sahte Avcısı";
+    message = "Mükemmel oynadın kral. Hem doğru kararlar verdin hem de ofisini akıllıca geliştirdin.";
+  } else if (correctDecisions >= 9) {
     title = "Sahte Avcısı";
-    message = "Mükemmel oynadın kral. Neredeyse hiçbir dolandırıcı senden kaçamadı.";
+    message = "Neredeyse hiçbir dolandırıcı senden kaçamadı. Ofis yatırımlarını artırırsan daha da büyürsün.";
   } else if (correctDecisions >= 7) {
     title = "Güvenilir Uzman";
     message = "Çok iyi iş çıkardın. Ofisin güven kazanmaya başladı.";
@@ -294,11 +427,16 @@ function finishGame() {
   document.getElementById("finalResult").innerHTML =
     "Doğru karar sayısı: <strong>" + correctDecisions + " / " + cases.length + "</strong><br><br>" +
     "Final Para: <strong>" + money + " TL</strong><br>" +
-    "Final İtibar: <strong>" + reputation + "</strong><br><br>" +
+    "Final İtibar: <strong>" + reputation + "</strong><br>" +
+    "Aktif Geliştirme: <strong>" + activeUpgrades + " / 3</strong><br><br>" +
     "Unvanın: <strong>" + title + "</strong><br><br>" +
     message;
 
   showScreen("endScreen");
+}
+
+function showWarning(message) {
+  document.getElementById("warningText").textContent = message;
 }
 
 function clamp(value, min, max) {
