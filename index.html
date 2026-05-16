@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Sahte Avcısı - Web Demo v0.6</title>
+  <title>Sahte Avcısı - Web Demo v0.7</title>
 
   <link rel="stylesheet" href="src/css/style.css" />
 </head>
@@ -15,7 +15,7 @@
     <header class="top-bar">
       <div>
         <h1>Sahte Avcısı</h1>
-        <p>Ekspertiz Simülatörü - Demo v0.6</p>
+        <p>Ekspertiz Simülatörü - Demo v0.7</p>
       </div>
 
       <div class="stats">
@@ -35,6 +35,11 @@
         </div>
 
         <div class="stat-box">
+          <span>Seri</span>
+          <strong id="streakNumber">0</strong>
+        </div>
+
+        <div class="stat-box">
           <span>Vaka</span>
           <strong id="caseNumber">0 / 10</strong>
         </div>
@@ -46,15 +51,19 @@
       <section id="startScreen" class="screen active">
         <h2>Ofisine hoş geldin.</h2>
         <p>
-          Şüpheli ürünleri incele, kanıtları topla ve doğru kararı ver.
-          Kazandığın parayla ofis ekipmanlarını geliştirebilirsin ama dikkat:
-          her 3 gün sonunda ofis kirası ödenir.
+          Şüpheli ürünleri incele, doğru kararı ver, müşteri yorumlarını yükselt
+          ve ofisini ayakta tut. Artık doğru karar serisi ve rastgele ofis olayları da var.
         </p>
 
         <button class="primary-btn" onclick="startGame()">Oyuna Başla</button>
       </section>
 
       <section id="caseScreen" class="screen">
+
+        <div id="eventBox" class="event-box hidden">
+          <h3 id="eventTitle">Ofis Olayı</h3>
+          <p id="eventText">Olay açıklaması</p>
+        </div>
 
         <div class="customer-box">
           <div id="customerAvatar" class="customer-avatar">🧍</div>
@@ -73,13 +82,13 @@
 
         <div class="analysis-panel">
           <div>
-            <span>Sahte Olma İhtimali</span>
-            <strong id="fakeChance">%50</strong>
+            <span>Analiz Sonucu</span>
+            <strong id="fakeChance">Belirsiz</strong>
           </div>
 
           <div>
             <span>Risk Seviyesi</span>
-            <strong id="riskLevel">Orta</strong>
+            <strong id="riskLevel">Belirsiz</strong>
           </div>
 
           <div>
@@ -149,13 +158,13 @@
         </div>
 
         <div class="tools">
-  <h3>İnceleme Araçları</h3>
-  <p class="tool-info">
-    Her vakada en fazla 3 inceleme yapabilirsin. Bazı araçlar para harcatır.
-  </p>
+          <h3>İnceleme Araçları</h3>
+          <p class="tool-info">
+            Her vakada en fazla 3 inceleme yapabilirsin. Her inceleme para harcatır.
+          </p>
 
-  <div id="toolButtons" class="tool-buttons"></div>
-</div>
+          <div id="toolButtons" class="tool-buttons"></div>
+        </div>
 
         <div class="evidence-box">
           <h3>Bulunan Kanıtlar</h3>
@@ -184,6 +193,8 @@
 
         <p id="resultText">Sonuç açıklaması burada.</p>
 
+        <div id="reviewBox" class="review-box"></div>
+
         <button class="primary-btn" onclick="nextCase()">Sonraki Gün</button>
       </section>
 
@@ -209,7 +220,13 @@
 
   </div>
 
-  <script src="src/js/cases.js"></script>
+  <script src="src/js/data/cases.js"></script>
+  <script src="src/js/state.js"></script>
+  <script src="src/js/ui.js"></script>
+  <script src="src/js/events.js"></script>
+  <script src="src/js/upgrades.js"></script>
+  <script src="src/js/economy.js"></script>
+  <script src="src/js/gameplay.js"></script>
   <script src="src/js/app.js"></script>
 </body>
 </html>
