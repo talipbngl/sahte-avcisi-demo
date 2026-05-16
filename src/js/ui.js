@@ -61,18 +61,22 @@ function updateSingleUpgrade(type, statusId, buttonId) {
 }
 
 function loadCaseUI(currentCase) {
-  qs("customerAvatar").textContent = currentCase.avatar;
-  qs("customerName").textContent = currentCase.customerName;
-  qs("customerStory").textContent = currentCase.story;
-  qs("productName").textContent = currentCase.productName;
-  qs("productClaim").textContent = currentCase.claim;
-  qs("productValue").textContent = "İddia edilen değer: " + currentCase.value + " TL";
+  qs("introAvatar").textContent = currentCase.avatar;
+  qs("introCustomerName").textContent = currentCase.customerName;
+  qs("introStory").textContent = currentCase.story;
+  qs("introProductName").textContent = currentCase.productName;
+  qs("introClaim").textContent = currentCase.claim;
+  qs("introValue").textContent = "İddia edilen değer: " + currentCase.value + " TL";
+
+  qs("activeCaseTitle").textContent = currentCase.productName;
   qs("warningText").textContent = "";
 
-  qs("evidenceList").innerHTML = "<li>Henüz inceleme yapılmadı.</li>";
+  qs("evidenceList").innerHTML = "<li>Henüz özel ipucu açılmadı.</li>";
+
   renderPublicClues(currentCase.publicClues);
   clearSelections();
   hideNetworkBox();
+
   renderToolButtons();
   updateAnalysisPanel();
   updateOfficePanel();
@@ -115,73 +119,119 @@ function renderEvidence() {
     const li = document.createElement("li");
 
     if (evidence.upgraded) {
-      li.textContent = getUpgradedEvidenceText(evidence);
+      li.textContent = getUpgradedClueText(evidence);
     } else {
-      li.textContent = getBasicEvidenceText(evidence);
+      li.textContent = getNormalClueText(evidence);
     }
 
     evidenceList.appendChild(li);
   });
 }
 
-function getBasicEvidenceText(evidence) {
-  const impact = Math.abs(evidence.fakeImpact);
-
-  if (impact >= 30 && evidence.fakeImpact > 0) {
-    return evidence.name + ": Güçlü bir tutarsızlık yakalandı ama bunun nedeni sahtecilik, tamir, değişim veya normal üretim farkı olabilir.";
-  }
-
-  if (impact >= 30 && evidence.fakeImpact < 0) {
-    return evidence.name + ": Ürünün iddiasını destekleyen güçlü işaretler var ama tek başına kesin karar verdirmez.";
-  }
-
-  if (impact >= 15 && evidence.fakeImpact > 0) {
-    return evidence.name + ": Bazı detaylar soru işareti oluşturuyor.";
-  }
-
-  if (impact >= 15 && evidence.fakeImpact < 0) {
-    return evidence.name + ": Bazı bilgiler olumlu görünüyor. Yine de başka testlerle desteklenmesi gerekir.";
-  }
-
-  return evidence.name + ": Net olmayan, yoruma açık bir sonuç verdi.";
-}
-
-function getUpgradedEvidenceText(evidence) {
-  const impact = Math.abs(evidence.fakeImpact);
-
-  if (impact >= 35 && evidence.fakeImpact > 0) {
-    return evidence.name + ": Gelişmiş analiz sonucu ciddi tutarsızlık tespit edildi. Yüksek ihtimalle ürünün orijinallik iddiası sorunlu. Detay: " + evidence.text;
-  }
-
-  if (impact >= 35 && evidence.fakeImpact < 0) {
-    return evidence.name + ": Gelişmiş analiz sonucu ürünün iddiasını güçlü şekilde destekleyen bulgular bulundu. Yüksek ihtimalle ürün güvenilir görünüyor. Detay: " + evidence.text;
-  }
-
-  if (impact >= 20 && evidence.fakeImpact > 0) {
-    return evidence.name + ": Gelişmiş analiz sonucu orta-yüksek seviyede şüphe oluştu. Ürün sahte, değişmiş veya eksik beyan edilmiş olabilir. Detay: " + evidence.text;
-  }
-
-  if (impact >= 20 && evidence.fakeImpact < 0) {
-    return evidence.name + ": Gelişmiş analiz sonucu olumlu işaretler ağır basıyor. Yine de tek başına kesin karar sayılmaz. Detay: " + evidence.text;
-  }
-
+function getNormalClueText(evidence) {
   if (evidence.fakeImpact > 0) {
-    return evidence.name + ": Gelişmiş analiz hafif bir şüphe gösteriyor. Karar için başka bulgu gerekebilir. Detay: " + evidence.text;
+    return (
+      evidence.name +
+      ": " +
+      evidence.text +
+      " Bu bulgu, ürün veya satıcı iddiasını zayıflatıyor; fakat tek başına kesin hüküm değildir."
+    );
   }
 
   if (evidence.fakeImpact < 0) {
-    return evidence.name + ": Gelişmiş analiz hafif olumlu sonuç verdi. Karar için başka bulgu gerekebilir. Detay: " + evidence.text;
+    return (
+      evidence.name +
+      ": " +
+      evidence.text +
+      " Bu bulgu, ürün veya satıcı iddiasını destekliyor; fakat tek başına tüm dosyayı kapatmaz."
+    );
   }
 
-  return evidence.name + ": Gelişmiş analiz net bir tarafa işaret etmedi. Detay: " + evidence.text;
+  return (
+    evidence.name +
+    ": " +
+    evidence.text +
+    " Bu test belirgin bir tarafa ağırlık vermedi."
+  );
+}
+
+function getUpgradedClueText(evidence) {
+  const impact = Math.abs(evidence.fakeImpact);
+
+  if (evidence.fakeImpact > 0 && impact >= 35) {
+    return (
+      evidence.name +
+      ": " +
+      evidence.text +
+      " Gelişmiş analiz bu bulguyu kritik seviyede görüyor. Bu dosyada olumsuz ihtimal güçlü."
+    );
+  }
+
+  if (evidence.fakeImpact > 0 && impact >= 20) {
+    return (
+      evidence.name +
+      ": " +
+      evidence.text +
+      " Gelişmiş analiz bu bulguyu önemli bir uyarı olarak işaretliyor."
+    );
+  }
+
+  if (evidence.fakeImpact > 0) {
+    return (
+      evidence.name +
+      ": " +
+      evidence.text +
+      " Gelişmiş analiz hafif olumsuz sinyal verdi."
+    );
+  }
+
+  if (evidence.fakeImpact < 0 && impact >= 35) {
+    return (
+      evidence.name +
+      ": " +
+      evidence.text +
+      " Gelişmiş analiz bu bulguyu güçlü olumlu kanıt olarak değerlendiriyor."
+    );
+  }
+
+  if (evidence.fakeImpact < 0 && impact >= 20) {
+    return (
+      evidence.name +
+      ": " +
+      evidence.text +
+      " Gelişmiş analiz bu bulgunun dosyayı olumlu desteklediğini gösteriyor."
+    );
+  }
+
+  if (evidence.fakeImpact < 0) {
+    return (
+      evidence.name +
+      ": " +
+      evidence.text +
+      " Gelişmiş analiz hafif olumlu sinyal verdi."
+    );
+  }
+
+  return (
+    evidence.name +
+    ": " +
+    evidence.text +
+    " Gelişmiş analiz net bir tarafa ağırlık vermedi."
+  );
 }
 
 function updateAnalysisPanel() {
-  qs("fakeChance").textContent = getSuspicionText();
-  qs("riskLevel").textContent = getRiskLevel();
-  qs("evidenceCounter").textContent =
-    state.collectedEvidence.length + " / " + settings.maxEvidencePerCase;
-  qs("confidenceLevel").textContent = getConfidenceLevel(state.collectedEvidence.length);
+  const evidenceCounter = qs("evidenceCounter");
+  const inspectionCost = qs("inspectionCost");
+
+  if (evidenceCounter) {
+    evidenceCounter.textContent =
+      state.collectedEvidence.length + " / " + settings.maxEvidencePerCase;
+  }
+
+  if (inspectionCost) {
+    inspectionCost.textContent = getTotalInspectionCost() + " TL";
+  }
 }
 
 function showWarning(message) {

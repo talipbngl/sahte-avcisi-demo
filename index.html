@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Sahte Avcısı - Web Demo v1.0</title>
+  <title>Sahte Avcısı - Web Demo v1.1</title>
 
   <link rel="stylesheet" href="src/css/style.css" />
 </head>
@@ -15,7 +15,7 @@
     <header class="top-bar">
       <div>
         <h1>Sahte Avcısı</h1>
-        <p>Ekspertiz Simülatörü - Demo v1.0 Vaka Panosu</p>
+        <p>Ekspertiz Simülatörü - Demo v1.1 Temiz Akış</p>
       </div>
 
       <div class="stats">
@@ -51,11 +51,43 @@
       <section id="startScreen" class="screen active">
         <h2>Ofisine hoş geldin.</h2>
         <p>
-          Artık sadece sahte mi gerçek mi karar vermiyorsun. Vaka panosundaki genel bilgileri oku,
-          incelemelerle özel ipuçlarını aç ve olayın asıl problemini çöz.
+          Şüpheli ürünleri incele, ipuçlarını değerlendir ve doğru raporu hazırla.
+          Az inceleme daha çok kazandırır ama hata yaparsan zararı ağır olur.
         </p>
 
         <button class="primary-btn" onclick="startGame()">Oyuna Başla</button>
+      </section>
+
+      <section id="caseIntroScreen" class="screen">
+        <div class="intro-card">
+          <div class="intro-header">
+            <div id="introAvatar" class="customer-avatar">🧍</div>
+
+            <div>
+              <h2 id="introCustomerName">Müşteri</h2>
+              <p id="introStory">Müşteri hikayesi burada görünecek.</p>
+            </div>
+          </div>
+
+          <div class="intro-product">
+            <h3 id="introProductName">Ürün</h3>
+            <p id="introClaim">İddia burada görünecek.</p>
+            <p id="introValue">İddia edilen değer: 0 TL</p>
+          </div>
+
+          <div class="case-board intro-board">
+            <h3>Vaka Bilgileri</h3>
+            <p class="board-subtitle">
+              Bunlar ilk gözlem notlarıdır. Cevabı direkt vermez, sadece olayın arka planını gösterir.
+            </p>
+
+            <ul id="publicClueList" class="clue-list">
+              <li>Genel bilgiler burada görünecek.</li>
+            </ul>
+          </div>
+
+          <button class="primary-btn" onclick="beginInspection()">İncelemeye Başla</button>
+        </div>
       </section>
 
       <section id="caseScreen" class="screen">
@@ -65,39 +97,10 @@
           <p id="eventText">Olay açıklaması</p>
         </div>
 
-        <div class="customer-box">
-          <div id="customerAvatar" class="customer-avatar">🧍</div>
-
+        <div class="active-case-bar">
           <div>
-            <h2 id="customerName">Müşteri</h2>
-            <p id="customerStory">Müşteri hikayesi burada görünecek.</p>
-          </div>
-        </div>
-
-        <div class="product-card">
-          <h3 id="productName">Ürün Adı</h3>
-          <p id="productClaim">İddia edilen bilgi</p>
-          <p id="productValue">Değer: 0 TL</p>
-        </div>
-
-        <div class="case-board">
-          <h3>Vaka Panosu</h3>
-          <p class="board-subtitle">Bu bilgiler baştan görünür. Tek başına cevap değildir, olayın kokusunu verir.</p>
-
-          <ul id="publicClueList" class="clue-list">
-            <li>Genel bilgiler burada görünecek.</li>
-          </ul>
-        </div>
-
-        <div class="analysis-panel">
-          <div>
-            <span>Dosya Durumu</span>
-            <strong id="fakeChance">Belirsiz</strong>
-          </div>
-
-          <div>
-            <span>Karar Riski</span>
-            <strong id="riskLevel">Belirsiz</strong>
+            <span>Aktif Vaka</span>
+            <strong id="activeCaseTitle">Ürün</strong>
           </div>
 
           <div>
@@ -106,70 +109,15 @@
           </div>
 
           <div>
-            <span>Karar Güveni</span>
-            <strong id="confidenceLevel">Düşük</strong>
-          </div>
-        </div>
-
-        <div class="expense-box">
-          <h3>Ofis Durumu</h3>
-
-          <div class="expense-grid">
-            <div class="expense-item">
-              <span>Bugün</span>
-              <strong id="officeDay">1. Gün</strong>
-            </div>
-
-            <div class="expense-item">
-              <span>Sıradaki Kira</span>
-              <strong id="nextRentDay">3. gün sonunda</strong>
-            </div>
-
-            <div class="expense-item">
-              <span>Kira Tutarı</span>
-              <strong id="rentAmount">300 TL</strong>
-            </div>
-
-            <div class="expense-item">
-              <span>Toplam Ödenen</span>
-              <strong id="totalRentPaid">0 TL</strong>
-            </div>
-          </div>
-        </div>
-
-        <div class="upgrade-box">
-          <h3>Ofis Geliştirmeleri</h3>
-
-          <div class="upgrade-grid">
-
-            <div class="upgrade-card">
-              <h4>Seri No Veri Tabanı</h4>
-              <p>Seri numarası kontrollerinde daha net ipucu verir.</p>
-              <strong id="upgradeSerialStatus">Alınmadı</strong>
-              <button id="upgradeSerialBtn" onclick="buyUpgrade('serial')">650 TL'ye Al</button>
-            </div>
-
-            <div class="upgrade-card">
-              <h4>Pro Büyüteç</h4>
-              <p>Fiziksel incelemelerde daha güçlü ipucu verir.</p>
-              <strong id="upgradeMagnifierStatus">Alınmadı</strong>
-              <button id="upgradeMagnifierBtn" onclick="buyUpgrade('magnifier')">500 TL'ye Al</button>
-            </div>
-
-            <div class="upgrade-card">
-              <h4>Fatura Doğrulama Yazılımı</h4>
-              <p>Belge ve fatura kontrollerinde daha net ipucu verir.</p>
-              <strong id="upgradeInvoiceStatus">Alınmadı</strong>
-              <button id="upgradeInvoiceBtn" onclick="buyUpgrade('invoice')">600 TL'ye Al</button>
-            </div>
-
+            <span>İnceleme Masrafı</span>
+            <strong id="inspectionCost">0 TL</strong>
           </div>
         </div>
 
         <div class="tools">
           <h3>İnceleme Araçları</h3>
           <p class="tool-info">
-            Her vakada en fazla 3 inceleme yapabilirsin. Az inceleme = yüksek risk, yüksek kazanç.
+            Her vakada en fazla 3 inceleme yapabilirsin. Az inceleme daha yüksek kazanç, ama daha yüksek risk demek.
           </p>
 
           <div id="toolButtons" class="tool-buttons"></div>
@@ -207,6 +155,65 @@
 
           <p id="warningText" class="warning-text"></p>
         </div>
+
+        <details class="office-details">
+          <summary>Ofis Durumu ve Geliştirmeler</summary>
+
+          <div class="expense-box">
+            <h3>Ofis Durumu</h3>
+
+            <div class="expense-grid">
+              <div class="expense-item">
+                <span>Bugün</span>
+                <strong id="officeDay">1. Gün</strong>
+              </div>
+
+              <div class="expense-item">
+                <span>Sıradaki Kira</span>
+                <strong id="nextRentDay">3. gün sonunda</strong>
+              </div>
+
+              <div class="expense-item">
+                <span>Kira Tutarı</span>
+                <strong id="rentAmount">300 TL</strong>
+              </div>
+
+              <div class="expense-item">
+                <span>Toplam Ödenen</span>
+                <strong id="totalRentPaid">0 TL</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="upgrade-box">
+            <h3>Ofis Geliştirmeleri</h3>
+
+            <div class="upgrade-grid">
+
+              <div class="upgrade-card">
+                <h4>Seri No Veri Tabanı</h4>
+                <p>Seri numarası kontrollerinde daha net ipucu verir.</p>
+                <strong id="upgradeSerialStatus">Alınmadı</strong>
+                <button id="upgradeSerialBtn" onclick="buyUpgrade('serial')">650 TL'ye Al</button>
+              </div>
+
+              <div class="upgrade-card">
+                <h4>Pro Büyüteç</h4>
+                <p>Fiziksel incelemelerde daha güçlü ipucu verir.</p>
+                <strong id="upgradeMagnifierStatus">Alınmadı</strong>
+                <button id="upgradeMagnifierBtn" onclick="buyUpgrade('magnifier')">500 TL'ye Al</button>
+              </div>
+
+              <div class="upgrade-card">
+                <h4>Fatura Doğrulama Yazılımı</h4>
+                <p>Belge ve fatura kontrollerinde daha net ipucu verir.</p>
+                <strong id="upgradeInvoiceStatus">Alınmadı</strong>
+                <button id="upgradeInvoiceBtn" onclick="buyUpgrade('invoice')">600 TL'ye Al</button>
+              </div>
+
+            </div>
+          </div>
+        </details>
 
       </section>
 

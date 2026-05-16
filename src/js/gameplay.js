@@ -1,7 +1,7 @@
 function startGame() {
   resetState();
   loadCase();
-  showScreen("caseScreen");
+  showScreen("caseIntroScreen");
 }
 
 function restartGame() {
@@ -17,7 +17,11 @@ function loadCase() {
   const currentCase = cases[state.currentCaseIndex];
 
   loadCaseUI(currentCase);
+  showEventBanner(null);
+}
+function beginInspection() {
   maybeTriggerRandomEvent();
+  showScreen("caseScreen");
 }
 
 function inspect(toolId) {
@@ -192,7 +196,7 @@ function nextCase() {
     finishGame();
   } else {
     loadCase();
-    showScreen("caseScreen");
+    showScreen("caseIntroScreen");
   }
 }
 
@@ -203,7 +207,7 @@ function continueAfterExpense() {
     finishGame();
   } else {
     loadCase();
-    showScreen("caseScreen");
+    showScreen("caseIntroScreen");
   }
 }
 
