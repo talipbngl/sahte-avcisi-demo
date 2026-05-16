@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sahte Avcısı - Web Demo v0.2</title>
-  <link rel="stylesheet" href="style.css" />
+
+  <title>Sahte Avcısı - Web Demo v0.3</title>
+
+  <link rel="stylesheet" href="src/css/style.css" />
 </head>
 <body>
 
@@ -13,7 +15,7 @@
     <header class="top-bar">
       <div>
         <h1>Sahte Avcısı</h1>
-        <p>Ekspertiz Simülatörü - Demo v0.2</p>
+        <p>Ekspertiz Simülatörü - Demo v0.3</p>
       </div>
 
       <div class="stats">
@@ -40,15 +42,18 @@
         <h2>Ofisine hoş geldin.</h2>
         <p>
           Şüpheli ürünleri incele, kanıtları topla ve doğru kararı ver.
-          Dikkatli ol: kanıt toplamadan karar veremezsin.
+          Her kanıt sahte olma ihtimalini etkiler. Ne kadar çok kanıt toplarsan,
+          kararın o kadar güvenilir olur.
         </p>
 
         <button class="primary-btn" onclick="startGame()">Oyuna Başla</button>
       </section>
 
       <section id="caseScreen" class="screen">
+
         <div class="customer-box">
           <div id="customerAvatar" class="customer-avatar">🧍</div>
+
           <div>
             <h2 id="customerName">Müşteri</h2>
             <p id="customerStory">Müşteri hikayesi burada görünecek.</p>
@@ -61,6 +66,28 @@
           <p id="productValue">Değer: 0 TL</p>
         </div>
 
+        <div class="analysis-panel">
+          <div>
+            <span>Sahte Olma İhtimali</span>
+            <strong id="fakeChance">%50</strong>
+          </div>
+
+          <div>
+            <span>Risk Seviyesi</span>
+            <strong id="riskLevel">Orta</strong>
+          </div>
+
+          <div>
+            <span>Toplanan Kanıt</span>
+            <strong id="evidenceCounter">0 / 3</strong>
+          </div>
+
+          <div>
+            <span>Karar Güveni</span>
+            <strong id="confidenceLevel">Düşük</strong>
+          </div>
+        </div>
+
         <div class="tools">
           <h3>İnceleme Araçları</h3>
 
@@ -71,6 +98,7 @@
 
         <div class="evidence-box">
           <h3>Bulunan Kanıtlar</h3>
+
           <ul id="evidenceList">
             <li>Henüz inceleme yapılmadı.</li>
           </ul>
@@ -85,11 +113,14 @@
 
           <p id="warningText" class="warning-text"></p>
         </div>
+
       </section>
 
       <section id="resultScreen" class="screen">
         <h2 id="resultTitle">Sonuç</h2>
+
         <div id="resultDetails" class="result-details"></div>
+
         <p id="resultText">Sonuç açıklaması burada.</p>
 
         <button class="primary-btn" onclick="nextCase()">Sonraki Vaka</button>
@@ -97,6 +128,7 @@
 
       <section id="endScreen" class="screen">
         <h2>Demo Bitti</h2>
+
         <p id="finalResult">Final sonucu burada.</p>
 
         <button class="primary-btn" onclick="restartGame()">Tekrar Oyna</button>
@@ -106,6 +138,7 @@
 
   </div>
 
-  <script src="app.js"></script>
+  <script src="src/js/cases.js"></script>
+  <script src="src/js/app.js"></script>
 </body>
 </html>

@@ -170,6 +170,33 @@ body {
   margin: 7px 0;
 }
 
+.analysis-panel {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.analysis-panel div {
+  background: #101625;
+  border: 1px solid #34405f;
+  border-radius: 16px;
+  padding: 16px;
+  text-align: center;
+}
+
+.analysis-panel span {
+  display: block;
+  color: #aab0c4;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.analysis-panel strong {
+  font-size: 22px;
+  color: #ffd36a;
+}
+
 .tools,
 .evidence-box,
 .decision-box {
@@ -220,7 +247,7 @@ body {
 }
 
 .result-details {
-  max-width: 650px;
+  max-width: 680px;
   margin: 0 auto 25px;
   background: #20283d;
   border: 1px solid #3a4565;
@@ -244,6 +271,12 @@ body {
 
 .neutral {
   color: #ffd36a !important;
+}
+
+@media (max-width: 850px) {
+  .analysis-panel {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 750px) {
@@ -271,5 +304,11 @@ body {
 
   .customer-box {
     flex-direction: column;
+  }
+}
+
+@media (max-width: 520px) {
+  .analysis-panel {
+    grid-template-columns: 1fr;
   }
 }
