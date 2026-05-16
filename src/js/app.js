@@ -5,6 +5,11 @@ let collectedEvidence = [];
 let correctDecisions = 0;
 let fakeChance = 50;
 
+let day = 1;
+let rentAmount = 300;
+let rentInterval = 3;
+let totalRentPaid = 0;
+
 let upgrades = {
   serial: false,
   magnifier: false,
@@ -25,6 +30,11 @@ function startGame() {
   correctDecisions = 0;
   fakeChance = 50;
 
+  day = 1;
+  rentAmount = 300;
+  rentInterval = 3;
+  totalRentPaid = 0;
+
   upgrades = {
     serial: false,
     magnifier: false,
@@ -32,6 +42,7 @@ function startGame() {
   };
 
   updateStats();
+  updateOfficePanel();
   updateUpgradePanel();
   loadCase();
   showScreen("caseScreen");
@@ -54,12 +65,36 @@ function showScreen(screenId) {
 function updateStats() {
   document.getElementById("money").textContent = money + " TL";
   document.getElementById("reputation").textContent = reputation;
+  document.getElementById("dayNumber").textContent = day;
 
   if (currentCaseIndex >= cases.length) {
     document.getElementById("caseNumber").textContent = cases.length + " / " + cases.length;
   } else {
     document.getElementById("caseNumber").textContent = (currentCaseIndex + 1) + " / " + cases.length;
   }
+}
+
+function updateOfficePanel() {
+  const officeDayElement = document.getElementById("officeDay");
+  const nextRentDayElement = document.getElementById("nextRentDay");
+  const rentAmountElement = document.getElementById("rentAmount");
+  const totalRentPaidElement = document.getElementById("totalRentPaid");
+
+  if (!officeDayElement) {
+    return;
+  }
+
+  officeDayElement.textContent = day + ". Gün";
+  nextRentDayElement.textContent = getNextRentDay() + ". gün sonunda";
+  rentAmountElement.textContent = rentAmount + " TL";
+  totalRentPaidElement.textContent = totalRentPaid + " TL";
+}
+
+function getNextRentDay() {
+  const cyclePosition = (day - 1) % rentInterval;
+  const daysUntilRentDay = rentInterval - cyclePosition - 1;
+
+  return day + daysUntilRentDay;
 }
 
 function loadCase() {
@@ -81,6 +116,7 @@ function loadCase() {
   evidenceList.innerHTML = "<li>Henüz inceleme yapılmadı.</li>";
 
   updateAnalysisPanel();
+  updateOfficePanel();
   updateUpgradePanel();
   updateStats();
 }
@@ -104,6 +140,7 @@ function buyUpgrade(type) {
   showWarning(getUpgradeName(type) + " satın alındı. Bu araç artık daha güçlü analiz yapacak.");
 
   updateStats();
+  updateOfficePanel();
   updateUpgradePanel();
 }
 
@@ -291,6 +328,7 @@ function makeDecision(playerAnswer) {
   document.getElementById("resultText").textContent = currentCase.resultExplanation;
 
   updateStats();
+  updateOfficePanel();
   showScreen("resultScreen");
 }
 
@@ -356,6 +394,128 @@ function renderResultDetails(playerAnswer, correctAnswer, moneyChange, reputatio
   `;
 }
 
+function nextCase() {
+  const completedDay = day;
+
+  currentCaseIndex++;
+
+  if (completedDay % rentInterval === 0) {
+    applyRent();
+
+    if (currentCaseIndex >= cases.length) {
+      showScreen("expenseScreen");
+      return;
+    }
+
+    showScreen("expenseScreen");
+    return;
+  }
+
+  day++;
+
+  if (currentCaseIndex >= cases.length) {
+    finishGame();
+  } else {
+    loadCase();
+    showScreen("caseScreen");
+  }
+}
+
+function applyRent() {
+  const moneyBeforeRent = money;
+  let rentMessage = "";
+
+  if (money >= rentAmount) {
+    money -= rentAmount;
+    totalRentPaid += rentAmount;
+
+    rentMessage = "Ofis kirası başarıyla ödendi. İşler devam ediyor.";
+  } else {
+    const missingMoney = rentAmount - money;
+
+    totalRentPaid += money;
+    money = 0;
+    reputation -= 6;
+
+    if (reputation < 0) {
+      reputation = 0;
+    }
+
+    rentMessage =
+      "Kiranın tamamını ödeyemedin. Eksik kalan tutar: " +
+      missingMoney +
+      " TL. Ev sahibiyle arayı bozduğun için itibarın 6 puan düştü.";
+  }
+
+  renderExpenseScreen(moneyBeforeRent, rentMessage);
+  updateStats();
+  updateOfficePanel();
+}
+
+function renderExpenseScreen(moneyBeforeRent, rentMessage) {
+  const paidAmount = moneyBeforeRent >= rentAmount ? rentAmount : moneyBeforeRent;
+  const missingAmount = rentAmount - paidAmount;
+
+  document.getElementById("expenseTitle").textContent = "Ofis Kirası Günü";
+
+  document.getElementById("expenseDetails").innerHTML = `
+    <p><strong>Gün:</strong> ${day}. gün sonu</p>
+    <p><strong>Kira tutarı:</strong> ${rentAmount} TL</p>
+    <p><strong>Ödenen tutar:</strong> ${paidAmount} TL</p>
+    <p><strong>Eksik tutar:</strong> ${missingAmount} TL</p>
+    <p><strong>Kalan para:</strong> ${money} TL</p>
+    <p><strong>Güncel itibar:</strong> ${reputation}</p>
+  `;
+
+  document.getElementById("expenseText").textContent = rentMessage;
+}
+
+function continueAfterExpense() {
+  day++;
+
+  if (currentCaseIndex >= cases.length) {
+    finishGame();
+  } else {
+    loadCase();
+    showScreen("caseScreen");
+  }
+}
+
+function finishGame() {
+  let title = "";
+  let message = "";
+
+  const activeUpgrades = getActiveUpgradeCount();
+
+  if (correctDecisions >= 9 && activeUpgrades >= 2 && money >= 1500) {
+    title = "Profesyonel Sahte Avcısı";
+    message = "Mükemmel oynadın kral. Hem doğru kararlar verdin hem de ofisini ayakta tuttun.";
+  } else if (correctDecisions >= 9 && activeUpgrades >= 2) {
+    title = "Usta Ekspertizci";
+    message = "Çok güçlü oynadın. Kararların iyiydi, ofis yatırımların da etkiliydi.";
+  } else if (correctDecisions >= 7) {
+    title = "Güvenilir Uzman";
+    message = "Çok iyi iş çıkardın. Ofisin güven kazanmaya başladı.";
+  } else if (correctDecisions >= 5) {
+    title = "Yeni Ekspertizci";
+    message = "Fena değilsin ama bazı vakalarda daha fazla kanıt toplaman gerekiyor.";
+  } else {
+    title = "Acemi Dedektif";
+    message = "Bu işte biraz daha pratik lazım. Kanıtları dikkatli yorumlamalısın.";
+  }
+
+  document.getElementById("finalResult").innerHTML =
+    "Doğru karar sayısı: <strong>" + correctDecisions + " / " + cases.length + "</strong><br><br>" +
+    "Final Para: <strong>" + money + " TL</strong><br>" +
+    "Final İtibar: <strong>" + reputation + "</strong><br>" +
+    "Toplam Ödenen Kira: <strong>" + totalRentPaid + " TL</strong><br>" +
+    "Aktif Geliştirme: <strong>" + activeUpgrades + " / 3</strong><br><br>" +
+    "Unvanın: <strong>" + title + "</strong><br><br>" +
+    message;
+
+  showScreen("endScreen");
+}
+
 function getActiveUpgradeCount() {
   let count = 0;
 
@@ -388,51 +548,6 @@ function answerToText(answer) {
   }
 
   return "Bilinmiyor";
-}
-
-function nextCase() {
-  currentCaseIndex++;
-
-  if (currentCaseIndex >= cases.length) {
-    finishGame();
-  } else {
-    loadCase();
-    showScreen("caseScreen");
-  }
-}
-
-function finishGame() {
-  let title = "";
-  let message = "";
-
-  const activeUpgrades = getActiveUpgradeCount();
-
-  if (correctDecisions >= 9 && activeUpgrades >= 2) {
-    title = "Profesyonel Sahte Avcısı";
-    message = "Mükemmel oynadın kral. Hem doğru kararlar verdin hem de ofisini akıllıca geliştirdin.";
-  } else if (correctDecisions >= 9) {
-    title = "Sahte Avcısı";
-    message = "Neredeyse hiçbir dolandırıcı senden kaçamadı. Ofis yatırımlarını artırırsan daha da büyürsün.";
-  } else if (correctDecisions >= 7) {
-    title = "Güvenilir Uzman";
-    message = "Çok iyi iş çıkardın. Ofisin güven kazanmaya başladı.";
-  } else if (correctDecisions >= 5) {
-    title = "Yeni Ekspertizci";
-    message = "Fena değilsin ama bazı vakalarda daha fazla kanıt toplaman gerekiyor.";
-  } else {
-    title = "Acemi Dedektif";
-    message = "Bu işte biraz daha pratik lazım. Kanıtları dikkatli yorumlamalısın.";
-  }
-
-  document.getElementById("finalResult").innerHTML =
-    "Doğru karar sayısı: <strong>" + correctDecisions + " / " + cases.length + "</strong><br><br>" +
-    "Final Para: <strong>" + money + " TL</strong><br>" +
-    "Final İtibar: <strong>" + reputation + "</strong><br>" +
-    "Aktif Geliştirme: <strong>" + activeUpgrades + " / 3</strong><br><br>" +
-    "Unvanın: <strong>" + title + "</strong><br><br>" +
-    message;
-
-  showScreen("endScreen");
 }
 
 function showWarning(message) {

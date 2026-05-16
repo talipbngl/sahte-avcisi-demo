@@ -40,6 +40,7 @@ body {
 .stats {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .stat-box {
@@ -47,7 +48,7 @@ body {
   border: 1px solid #333b55;
   padding: 14px 18px;
   border-radius: 14px;
-  min-width: 110px;
+  min-width: 105px;
   text-align: center;
 }
 
@@ -82,14 +83,16 @@ body {
 
 #startScreen,
 #endScreen,
-#resultScreen {
+#resultScreen,
+#expenseScreen {
   text-align: center;
   padding: 75px 20px;
 }
 
 #startScreen h2,
 #endScreen h2,
-#resultScreen h2 {
+#resultScreen h2,
+#expenseScreen h2 {
   font-size: 36px;
   margin-bottom: 18px;
   color: #ffd36a;
@@ -97,7 +100,8 @@ body {
 
 #startScreen p,
 #endScreen p,
-#resultScreen p {
+#resultScreen p,
+#expenseScreen p {
   max-width: 700px;
   margin: 0 auto 30px;
   line-height: 1.6;
@@ -197,6 +201,7 @@ body {
   color: #ffd36a;
 }
 
+.expense-box,
 .upgrade-box,
 .tools,
 .evidence-box,
@@ -208,12 +213,39 @@ body {
   margin-bottom: 22px;
 }
 
+.expense-box h3,
 .upgrade-box h3,
 .tools h3,
 .evidence-box h3,
 .decision-box h3 {
   margin-bottom: 14px;
   color: #ffd36a;
+}
+
+.expense-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.expense-item {
+  background: #151a29;
+  border: 1px solid #34405f;
+  border-radius: 16px;
+  padding: 16px;
+  text-align: center;
+}
+
+.expense-item span {
+  display: block;
+  color: #aab0c4;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.expense-item strong {
+  color: #ffffff;
+  font-size: 18px;
 }
 
 .upgrade-grid {
@@ -314,7 +346,8 @@ body {
 }
 
 @media (max-width: 900px) {
-  .analysis-panel {
+  .analysis-panel,
+  .expense-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -352,7 +385,8 @@ body {
 }
 
 @media (max-width: 520px) {
-  .analysis-panel {
+  .analysis-panel,
+  .expense-grid {
     grid-template-columns: 1fr;
   }
 }

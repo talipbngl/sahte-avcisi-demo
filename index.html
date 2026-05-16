@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Sahte Avcısı - Web Demo v0.4</title>
+  <title>Sahte Avcısı - Web Demo v0.5</title>
 
   <link rel="stylesheet" href="src/css/style.css" />
 </head>
@@ -15,7 +15,7 @@
     <header class="top-bar">
       <div>
         <h1>Sahte Avcısı</h1>
-        <p>Ekspertiz Simülatörü - Demo v0.4</p>
+        <p>Ekspertiz Simülatörü - Demo v0.5</p>
       </div>
 
       <div class="stats">
@@ -27,6 +27,11 @@
         <div class="stat-box">
           <span>İtibar</span>
           <strong id="reputation">50</strong>
+        </div>
+
+        <div class="stat-box">
+          <span>Gün</span>
+          <strong id="dayNumber">1</strong>
         </div>
 
         <div class="stat-box">
@@ -42,7 +47,8 @@
         <h2>Ofisine hoş geldin.</h2>
         <p>
           Şüpheli ürünleri incele, kanıtları topla ve doğru kararı ver.
-          Kazandığın parayla ofis ekipmanlarını geliştirerek daha güçlü analizler yapabilirsin.
+          Kazandığın parayla ofis ekipmanlarını geliştirebilirsin ama dikkat:
+          her 3 gün sonunda ofis kirası ödenir.
         </p>
 
         <button class="primary-btn" onclick="startGame()">Oyuna Başla</button>
@@ -84,6 +90,32 @@
           <div>
             <span>Karar Güveni</span>
             <strong id="confidenceLevel">Düşük</strong>
+          </div>
+        </div>
+
+        <div class="expense-box">
+          <h3>Ofis Durumu</h3>
+
+          <div class="expense-grid">
+            <div class="expense-item">
+              <span>Bugün</span>
+              <strong id="officeDay">1. Gün</strong>
+            </div>
+
+            <div class="expense-item">
+              <span>Sıradaki Kira</span>
+              <strong id="nextRentDay">3. gün sonunda</strong>
+            </div>
+
+            <div class="expense-item">
+              <span>Kira Tutarı</span>
+              <strong id="rentAmount">300 TL</strong>
+            </div>
+
+            <div class="expense-item">
+              <span>Toplam Ödenen</span>
+              <strong id="totalRentPaid">0 TL</strong>
+            </div>
           </div>
         </div>
 
@@ -151,7 +183,17 @@
 
         <p id="resultText">Sonuç açıklaması burada.</p>
 
-        <button class="primary-btn" onclick="nextCase()">Sonraki Vaka</button>
+        <button class="primary-btn" onclick="nextCase()">Sonraki Gün</button>
+      </section>
+
+      <section id="expenseScreen" class="screen">
+        <h2 id="expenseTitle">Ofis Masrafı</h2>
+
+        <div id="expenseDetails" class="result-details"></div>
+
+        <p id="expenseText">Masraf açıklaması burada.</p>
+
+        <button class="primary-btn" onclick="continueAfterExpense()">Devam Et</button>
       </section>
 
       <section id="endScreen" class="screen">
