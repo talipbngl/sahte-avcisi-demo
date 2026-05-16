@@ -390,3 +390,35 @@ body {
     grid-template-columns: 1fr;
   }
 }
+.tool-info {
+  color: #bfc6dc;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+.tool-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tool-button {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 180px;
+  text-align: left;
+}
+
+.tool-button small {
+  color: #ffcf6a;
+}
+
+.tool-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.debt-warning {
+  color: #ff7272 !important;
+}

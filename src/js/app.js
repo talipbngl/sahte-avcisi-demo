@@ -10,6 +10,8 @@ let rentAmount = 300;
 let rentInterval = 3;
 let totalRentPaid = 0;
 
+const maxEvidencePerCase = 3;
+
 let upgrades = {
   serial: false,
   magnifier: false,
@@ -63,7 +65,16 @@ function showScreen(screenId) {
 }
 
 function updateStats() {
-  document.getElementById("money").textContent = money + " TL";
+  const moneyElement = document.getElementById("money");
+
+  moneyElement.textContent = money + " TL";
+
+  if (money < 0) {
+    moneyElement.classList.add("debt-warning");
+  } else {
+    moneyElement.classList.remove("debt-warning");
+  }
+
   document.getElementById("reputation").textContent = reputation;
   document.getElementById("dayNumber").textContent = day;
 
@@ -76,18 +87,15 @@ function updateStats() {
 
 function updateOfficePanel() {
   const officeDayElement = document.getElementById("officeDay");
-  const nextRentDayElement = document.getElementById("nextRentDay");
-  const rentAmountElement = document.getElementById("rentAmount");
-  const totalRentPaidElement = document.getElementById("totalRentPaid");
 
   if (!officeDayElement) {
     return;
   }
 
-  officeDayElement.textContent = day + ". Gün";
-  nextRentDayElement.textContent = getNextRentDay() + ". gün sonunda";
-  rentAmountElement.textContent = rentAmount + " TL";
-  totalRentPaidElement.textContent = totalRentPaid + " TL";
+  document.getElementById("officeDay").textContent = day + ". Gün";
+  document.getElementById("nextRentDay").textContent = getNextRentDay() + ". gün sonunda";
+  document.getElementById("rentAmount").textContent = rentAmount + " TL";
+  document.getElementById("totalRentPaid").textContent = totalRentPaid + " TL";
 }
 
 function getNextRentDay() {
@@ -115,10 +123,39 @@ function loadCase() {
   const evidenceList = document.getElementById("evidenceList");
   evidenceList.innerHTML = "<li>Henüz inceleme yapılmadı.</li>";
 
+  renderToolButtons();
   updateAnalysisPanel();
   updateOfficePanel();
   updateUpgradePanel();
   updateStats();
+}
+
+function renderToolButtons() {
+  const toolButtons = document.getElementById("toolButtons");
+  const currentCase = cases[currentCaseIndex];
+
+  toolButtons.innerHTML = "";
+
+  currentCase.tools.forEach(tool => {
+    const button = document.createElement("button");
+    button.className = "tool-button";
+
+    const alreadyUsed = collectedEvidence.some(evidence => evidence.id === tool.id);
+    const evidenceLimitReached = collectedEvidence.length >= maxEvidencePerCase;
+
+    button.disabled = alreadyUsed || evidenceLimitReached;
+
+    button.innerHTML = `
+      <span>${tool.name}</span>
+      <small>${tool.cost} TL</small>
+    `;
+
+    button.onclick = function () {
+      inspect(tool.id);
+    };
+
+    toolButtons.appendChild(button);
+  });
 }
 
 function buyUpgrade(type) {
@@ -130,14 +167,14 @@ function buyUpgrade(type) {
   const price = upgradePrices[type];
 
   if (money < price) {
-    showWarning("Bu geliştirme için yeterli paran yok. Birkaç vaka daha çözmen lazım.");
+    showWarning("Bu geliştirme için yeterli paran yok. Borca girerek geliştirme alamazsın.");
     return;
   }
 
   money -= price;
   upgrades[type] = true;
 
-  showWarning(getUpgradeName(type) + " satın alındı. Bu araç artık daha güçlü analiz yapacak.");
+  showWarning(getUpgradeName(type) + " satın alındı. Bu araç kategorisi artık daha güçlü analiz yapacak.");
 
   updateStats();
   updateOfficePanel();
@@ -185,25 +222,40 @@ function updateSingleUpgrade(type, statusId, buttonId) {
   }
 }
 
-function inspect(type) {
+function inspect(toolId) {
   const currentCase = cases[currentCaseIndex];
-  const evidenceData = currentCase.evidence[type];
+  const selectedTool = currentCase.tools.find(tool => tool.id === toolId);
 
-  const alreadyCollected = collectedEvidence.some(item => item.type === type);
+  if (!selectedTool) {
+    showWarning("Bu inceleme aracı bulunamadı.");
+    return;
+  }
+
+  const alreadyCollected = collectedEvidence.some(item => item.id === toolId);
 
   if (alreadyCollected) {
     showWarning("Bu incelemeyi zaten yaptın kral. Başka bir araç dene.");
     return;
   }
 
-  const effectiveImpact = calculateEffectiveImpact(type, evidenceData.fakeImpact);
+  if (collectedEvidence.length >= maxEvidencePerCase) {
+    showWarning("Bu vaka için en fazla 3 inceleme yapabilirsin. Artık karar vermen gerekiyor.");
+    return;
+  }
+
+  money -= selectedTool.cost;
+
+  const effectiveImpact = calculateEffectiveImpact(selectedTool.category, selectedTool.fakeImpact);
 
   collectedEvidence.push({
-    type: type,
-    text: evidenceData.text,
-    baseImpact: evidenceData.fakeImpact,
+    id: selectedTool.id,
+    category: selectedTool.category,
+    name: selectedTool.name,
+    text: selectedTool.text,
+    cost: selectedTool.cost,
+    baseImpact: selectedTool.fakeImpact,
     fakeImpact: effectiveImpact,
-    upgraded: upgrades[type]
+    upgraded: upgrades[selectedTool.category]
   });
 
   fakeChance += effectiveImpact;
@@ -212,15 +264,17 @@ function inspect(type) {
   showWarning("");
 
   renderEvidence();
+  renderToolButtons();
   updateAnalysisPanel();
+  updateStats();
 }
 
-function calculateEffectiveImpact(type, baseImpact) {
-  if (!upgrades[type]) {
+function calculateEffectiveImpact(category, baseImpact) {
+  if (!upgrades[category]) {
     return baseImpact;
   }
 
-  const upgradeBonus = 10;
+  const upgradeBonus = 8;
 
   if (baseImpact > 0) {
     return baseImpact + upgradeBonus;
@@ -240,28 +294,56 @@ function renderEvidence() {
   collectedEvidence.forEach(evidence => {
     const li = document.createElement("li");
 
-    const impactText = evidence.fakeImpact > 0
-      ? "Sahte ihtimalini artırdı"
-      : "Sahte ihtimalini düşürdü";
-
     const upgradeText = evidence.upgraded
-      ? " | Geliştirilmiş araç bonusu aktif"
+      ? " Geliştirilmiş ekipmanla analiz edildi."
       : "";
 
-    li.textContent = evidence.text + " (" + impactText + upgradeText + ")";
+    li.textContent = evidence.name + ": " + evidence.text + upgradeText;
 
     evidenceList.appendChild(li);
   });
 }
 
 function updateAnalysisPanel() {
-  document.getElementById("fakeChance").textContent = "%" + fakeChance;
+  document.getElementById("fakeChance").textContent = getSuspicionText();
   document.getElementById("riskLevel").textContent = getRiskLevel(fakeChance);
-  document.getElementById("evidenceCounter").textContent = collectedEvidence.length + " / 3";
+  document.getElementById("evidenceCounter").textContent = collectedEvidence.length + " / " + maxEvidencePerCase;
   document.getElementById("confidenceLevel").textContent = getConfidenceLevel(collectedEvidence.length);
 }
 
+function getSuspicionText() {
+  if (collectedEvidence.length === 0) {
+    return "Belirsiz";
+  }
+
+  if (collectedEvidence.length === 1) {
+    return "Yetersiz Veri";
+  }
+
+  if (fakeChance >= 75) {
+    return "Çok Şüpheli";
+  }
+
+  if (fakeChance >= 60) {
+    return "Şüpheli";
+  }
+
+  if (fakeChance >= 40) {
+    return "Kararsız";
+  }
+
+  if (fakeChance >= 25) {
+    return "Güvenli Gibi";
+  }
+
+  return "Güvenli";
+}
+
 function getRiskLevel(chance) {
+  if (collectedEvidence.length < 2) {
+    return "Belirsiz";
+  }
+
   if (chance >= 70) {
     return "Yüksek";
   }
@@ -299,10 +381,6 @@ function makeDecision(playerAnswer) {
   money += rewardData.moneyChange;
   reputation += rewardData.reputationChange;
 
-  if (money < 0) {
-    money = 0;
-  }
-
   if (reputation < 0) {
     reputation = 0;
   }
@@ -337,39 +415,39 @@ function calculateReward(isCorrect, evidenceCount) {
     if (evidenceCount === 1) {
       return {
         moneyChange: 150,
-        reputationChange: 2
+        reputationChange: 1
       };
     }
 
     if (evidenceCount === 2) {
       return {
-        moneyChange: 250,
+        moneyChange: 275,
         reputationChange: 4
       };
     }
 
     return {
-      moneyChange: 400,
+      moneyChange: 450,
       reputationChange: 7
     };
   }
 
   if (evidenceCount === 1) {
     return {
-      moneyChange: -250,
+      moneyChange: -300,
       reputationChange: -10
     };
   }
 
   if (evidenceCount === 2) {
     return {
-      moneyChange: -200,
+      moneyChange: -230,
       reputationChange: -8
     };
   }
 
   return {
-    moneyChange: -150,
+    moneyChange: -180,
     reputationChange: -5
   };
 }
@@ -381,17 +459,29 @@ function renderResultDetails(playerAnswer, correctAnswer, moneyChange, reputatio
   const reputationText = reputationChange > 0 ? "+" + reputationChange : reputationChange;
 
   const activeUpgrades = getActiveUpgradeCount();
+  const inspectionCost = getTotalInspectionCost();
 
   resultDetails.innerHTML = `
     <p><strong>Senin kararın:</strong> ${answerToText(playerAnswer)}</p>
     <p><strong>Doğru karar:</strong> ${answerToText(correctAnswer)}</p>
-    <p><strong>Toplanan kanıt:</strong> ${evidenceCount} / 3</p>
-    <p><strong>Son sahte olma ihtimali:</strong> %${fakeChance}</p>
+    <p><strong>Toplanan kanıt:</strong> ${evidenceCount} / ${maxEvidencePerCase}</p>
+    <p><strong>İnceleme masrafı:</strong> ${inspectionCost} TL</p>
+    <p><strong>Gizli şüphe skoru:</strong> %${fakeChance}</p>
     <p><strong>Karar güveni:</strong> ${getConfidenceLevel(evidenceCount)}</p>
     <p><strong>Aktif ofis geliştirmesi:</strong> ${activeUpgrades} / 3</p>
-    <p><strong>Para değişimi:</strong> ${moneyText}</p>
+    <p><strong>Karar para etkisi:</strong> ${moneyText}</p>
     <p><strong>İtibar değişimi:</strong> ${reputationText}</p>
   `;
+}
+
+function getTotalInspectionCost() {
+  let total = 0;
+
+  collectedEvidence.forEach(evidence => {
+    total += evidence.cost;
+  });
+
+  return total;
 }
 
 function nextCase() {
@@ -401,11 +491,6 @@ function nextCase() {
 
   if (completedDay % rentInterval === 0) {
     applyRent();
-
-    if (currentCaseIndex >= cases.length) {
-      showScreen("expenseScreen");
-      return;
-    }
 
     showScreen("expenseScreen");
     return;
@@ -423,18 +508,20 @@ function nextCase() {
 
 function applyRent() {
   const moneyBeforeRent = money;
+  const paidAmount = Math.min(Math.max(moneyBeforeRent, 0), rentAmount);
+  const debtAmount = rentAmount - paidAmount;
+
+  money -= rentAmount;
+
+  if (paidAmount > 0) {
+    totalRentPaid += paidAmount;
+  }
+
   let rentMessage = "";
 
-  if (money >= rentAmount) {
-    money -= rentAmount;
-    totalRentPaid += rentAmount;
-
+  if (debtAmount === 0) {
     rentMessage = "Ofis kirası başarıyla ödendi. İşler devam ediyor.";
   } else {
-    const missingMoney = rentAmount - money;
-
-    totalRentPaid += money;
-    money = 0;
     reputation -= 6;
 
     if (reputation < 0) {
@@ -442,28 +529,25 @@ function applyRent() {
     }
 
     rentMessage =
-      "Kiranın tamamını ödeyemedin. Eksik kalan tutar: " +
-      missingMoney +
-      " TL. Ev sahibiyle arayı bozduğun için itibarın 6 puan düştü.";
+      "Kiranın tamamını ödeyemedin. " +
+      debtAmount +
+      " TL borca yazıldı. İtibarın 6 puan düştü.";
   }
 
-  renderExpenseScreen(moneyBeforeRent, rentMessage);
+  renderExpenseScreen(paidAmount, debtAmount, rentMessage);
   updateStats();
   updateOfficePanel();
 }
 
-function renderExpenseScreen(moneyBeforeRent, rentMessage) {
-  const paidAmount = moneyBeforeRent >= rentAmount ? rentAmount : moneyBeforeRent;
-  const missingAmount = rentAmount - paidAmount;
-
+function renderExpenseScreen(paidAmount, debtAmount, rentMessage) {
   document.getElementById("expenseTitle").textContent = "Ofis Kirası Günü";
 
   document.getElementById("expenseDetails").innerHTML = `
     <p><strong>Gün:</strong> ${day}. gün sonu</p>
     <p><strong>Kira tutarı:</strong> ${rentAmount} TL</p>
     <p><strong>Ödenen tutar:</strong> ${paidAmount} TL</p>
-    <p><strong>Eksik tutar:</strong> ${missingAmount} TL</p>
-    <p><strong>Kalan para:</strong> ${money} TL</p>
+    <p><strong>Borca yazılan:</strong> ${debtAmount} TL</p>
+    <p><strong>Güncel para:</strong> ${money} TL</p>
     <p><strong>Güncel itibar:</strong> ${reputation}</p>
   `;
 
@@ -487,7 +571,10 @@ function finishGame() {
 
   const activeUpgrades = getActiveUpgradeCount();
 
-  if (correctDecisions >= 9 && activeUpgrades >= 2 && money >= 1500) {
+  if (money < 0 && reputation < 40) {
+    title = "Borçlu Ekspertizci";
+    message = "Vakaları çözmeye çalıştın ama ofis ekonomisini iyi yönetemedin. Daha az gereksiz inceleme yapmalısın.";
+  } else if (correctDecisions >= 9 && activeUpgrades >= 2 && money >= 1500) {
     title = "Profesyonel Sahte Avcısı";
     message = "Mükemmel oynadın kral. Hem doğru kararlar verdin hem de ofisini ayakta tuttun.";
   } else if (correctDecisions >= 9 && activeUpgrades >= 2) {

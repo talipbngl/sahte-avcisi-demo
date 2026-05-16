@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Sahte Avcısı - Web Demo v0.5</title>
+  <title>Sahte Avcısı - Web Demo v0.6</title>
 
   <link rel="stylesheet" href="src/css/style.css" />
 </head>
@@ -15,7 +15,7 @@
     <header class="top-bar">
       <div>
         <h1>Sahte Avcısı</h1>
-        <p>Ekspertiz Simülatörü - Demo v0.5</p>
+        <p>Ekspertiz Simülatörü - Demo v0.6</p>
       </div>
 
       <div class="stats">
@@ -149,12 +149,13 @@
         </div>
 
         <div class="tools">
-          <h3>İnceleme Araçları</h3>
+  <h3>İnceleme Araçları</h3>
+  <p class="tool-info">
+    Her vakada en fazla 3 inceleme yapabilirsin. Bazı araçlar para harcatır.
+  </p>
 
-          <button onclick="inspect('serial')">Seri No Kontrol Et</button>
-          <button onclick="inspect('magnifier')">Büyüteçle İncele</button>
-          <button onclick="inspect('invoice')">Fatura Kontrol Et</button>
-        </div>
+  <div id="toolButtons" class="tool-buttons"></div>
+</div>
 
         <div class="evidence-box">
           <h3>Bulunan Kanıtlar</h3>
