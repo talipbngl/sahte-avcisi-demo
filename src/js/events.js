@@ -54,36 +54,43 @@ function maybeTriggerRandomEvent() {
 }
 
 function buildReview(isCorrect, evidenceCount) {
-  if (isCorrect && evidenceCount >= 3) {
+  if (isCorrect && evidenceCount === 1) {
     return {
       stars: 5,
-      text: "Müşteri: Detaylı inceledi, içim rahatladı. Gerçekten profesyonel."
+      text: "Müşteri: Çok hızlı karar verdi, önce korktum ama haklı çıktı. Adam işi biliyor."
     };
   }
 
   if (isCorrect && evidenceCount === 2) {
     return {
       stars: 4,
-      text: "Müşteri: Güzel açıkladı, karar mantıklı geldi."
+      text: "Müşteri: Gereksiz uzatmadan mantıklı bir analiz yaptı. Memnun kaldım."
     };
   }
 
-  if (isCorrect) {
+  if (isCorrect && evidenceCount >= 3) {
     return {
-      stars: 3,
-      text: "Müşteri: Doğru bildi ama biraz hızlı karar verdi gibi."
+      stars: 4,
+      text: "Müşteri: Detaylı inceledi, içim rahatladı. Biraz pahalı ama güven verdi."
     };
   }
 
-  if (!isCorrect && evidenceCount >= 3) {
+  if (!isCorrect && evidenceCount === 1) {
+    return {
+      stars: 1,
+      text: "Müşteri: Çok hızlı karar verdi ve yanıldı. Büyük hayal kırıklığı."
+    };
+  }
+
+  if (!isCorrect && evidenceCount === 2) {
     return {
       stars: 2,
-      text: "Müşteri: Çok inceledi ama sonuç yine yanlış çıktı. Güvenim azaldı."
+      text: "Müşteri: Biraz baktı ama doğru sonuca ulaşamadı. Güvenim azaldı."
     };
   }
 
   return {
-    stars: 1,
-    text: "Müşteri: Yeterince bakmadan karar verdi. Bir daha gelmem."
+    stars: 2,
+    text: "Müşteri: Çok inceledi ama yine de yanıldı. En azından uğraştı diyebilirim."
   };
 }

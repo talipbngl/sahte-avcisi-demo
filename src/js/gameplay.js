@@ -107,24 +107,22 @@ function makeDecision(playerAnswer) {
   updateOfficePanel();
   showScreen("resultScreen");
 }
-
 function getSuspicionText() {
-  if (state.collectedEvidence.length === 0) return "Belirsiz";
-  if (state.collectedEvidence.length === 1) return "Yetersiz Veri";
+  const evidenceCount = state.collectedEvidence.length;
 
-  if (state.fakeChance >= 75) return "Çok Şüpheli";
-  if (state.fakeChance >= 60) return "Şüpheli";
-  if (state.fakeChance >= 40) return "Kararsız";
-  if (state.fakeChance >= 25) return "Güvenli Gibi";
+  if (evidenceCount === 0) return "Dosya Açık";
+  if (evidenceCount === 1) return "Az Veri";
+  if (evidenceCount === 2) return "Kısmi Analiz";
 
-  return "Güvenli";
+  return "Tam Dosya";
 }
 
-function getRiskLevel(chance) {
-  if (state.collectedEvidence.length < 2) return "Belirsiz";
+function getRiskLevel() {
+  const evidenceCount = state.collectedEvidence.length;
 
-  if (chance >= 70) return "Yüksek";
-  if (chance >= 35) return "Orta";
+  if (evidenceCount === 0) return "Çok Yüksek";
+  if (evidenceCount === 1) return "Çok Yüksek";
+  if (evidenceCount === 2) return "Orta";
 
   return "Düşük";
 }

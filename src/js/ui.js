@@ -113,18 +113,40 @@ function renderEvidence() {
     const li = document.createElement("li");
 
     const upgradeText = evidence.upgraded
-      ? " Geliştirilmiş ekipmanla analiz edildi."
+      ? " Geliştirilmiş ekipmanla daha detaylı incelendi."
       : "";
 
-    li.textContent = evidence.name + ": " + evidence.text + upgradeText;
+    li.textContent = getPlayerFacingEvidenceText(evidence) + upgradeText;
 
     evidenceList.appendChild(li);
   });
 }
 
+function getPlayerFacingEvidenceText(evidence) {
+  const impact = Math.abs(evidence.fakeImpact);
+
+  if (impact >= 30 && evidence.fakeImpact > 0) {
+    return evidence.name + ": Güçlü bir tutarsızlık yakalandı ama bunun nedeni sahtecilik, tamir, değişim veya normal üretim farkı olabilir.";
+  }
+
+  if (impact >= 30 && evidence.fakeImpact < 0) {
+    return evidence.name + ": Ürünün iddiasını destekleyen güçlü işaretler var ama tek başına kesin karar verdirmez.";
+  }
+
+  if (impact >= 15 && evidence.fakeImpact > 0) {
+    return evidence.name + ": Bazı detaylar soru işareti oluşturuyor. Bu bulgu tek başına yeterli değil.";
+  }
+
+  if (impact >= 15 && evidence.fakeImpact < 0) {
+    return evidence.name + ": Bazı bilgiler olumlu görünüyor. Yine de başka testlerle desteklenmesi gerekir.";
+  }
+
+  return evidence.name + ": Net olmayan, yoruma açık bir sonuç verdi.";
+}
+
 function updateAnalysisPanel() {
   qs("fakeChance").textContent = getSuspicionText();
-  qs("riskLevel").textContent = getRiskLevel(state.fakeChance);
+  qs("riskLevel").textContent = getRiskLevel();
   qs("evidenceCounter").textContent =
     state.collectedEvidence.length + " / " + settings.maxEvidencePerCase;
   qs("confidenceLevel").textContent = getConfidenceLevel(state.collectedEvidence.length);
@@ -160,11 +182,13 @@ function renderResultDetails(playerAnswer, correctAnswer, rewardData) {
   qs("resultDetails").innerHTML = `
     <p><strong>Senin kararın:</strong> ${answerToText(playerAnswer)}</p>
     <p><strong>Doğru karar:</strong> ${answerToText(correctAnswer)}</p>
+    <p><strong>Karar tarzı:</strong> ${rewardData.riskLabel}</p>
     <p><strong>Toplanan kanıt:</strong> ${state.collectedEvidence.length} / ${settings.maxEvidencePerCase}</p>
     <p><strong>İnceleme masrafı:</strong> ${getTotalInspectionCost()} TL</p>
     <p><strong>Gizli şüphe skoru:</strong> %${state.fakeChance}</p>
-    <p><strong>Doğru karar serisi:</strong> ${state.correctStreak}</p>
+    <p><strong>Risk bonusu:</strong> ${rewardData.riskBonus} TL</p>
     <p><strong>Seri bonusu:</strong> ${rewardData.streakBonus} TL</p>
+    <p><strong>Doğru karar serisi:</strong> ${state.correctStreak}</p>
     <p><strong>Aktif ofis geliştirmesi:</strong> ${getActiveUpgradeCount()} / 3</p>
     <p><strong>Karar para etkisi:</strong> ${moneyText}</p>
     <p><strong>İtibar değişimi:</strong> ${reputationText}</p>

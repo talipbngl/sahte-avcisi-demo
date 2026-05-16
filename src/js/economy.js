@@ -4,51 +4,72 @@ function calculateReward(isCorrect, evidenceCount) {
 
     if (evidenceCount === 1) {
       return {
-        moneyChange: -300,
-        reputationChange: -10,
-        streakBonus: 0
+        moneyChange: -900,
+        reputationChange: -16,
+        streakBonus: 0,
+        riskBonus: 0,
+        riskLabel: "Aşırı Riskli Yanlış Karar"
       };
     }
 
     if (evidenceCount === 2) {
       return {
-        moneyChange: -230,
-        reputationChange: -8,
-        streakBonus: 0
+        moneyChange: -500,
+        reputationChange: -10,
+        streakBonus: 0,
+        riskBonus: 0,
+        riskLabel: "Riskli Yanlış Karar"
       };
     }
 
     return {
-      moneyChange: -180,
+      moneyChange: -220,
       reputationChange: -5,
-      streakBonus: 0
+      streakBonus: 0,
+      riskBonus: 0,
+      riskLabel: "Güvenli Ama Yanlış Karar"
     };
   }
 
   state.correctStreak++;
   state.bestStreak = Math.max(state.bestStreak, state.correctStreak);
 
-  let baseMoney = 150;
-  let baseReputation = 1;
+  let baseMoney = 250;
+  let baseReputation = 3;
+  let riskBonus = 0;
+  let riskLabel = "Güvenli Karar";
+
+  if (evidenceCount === 1) {
+    baseMoney = 350;
+    baseReputation = 5;
+    riskBonus = 450;
+    riskLabel = "Cesur Hızlı Karar";
+  }
 
   if (evidenceCount === 2) {
-    baseMoney = 275;
+    baseMoney = 350;
     baseReputation = 4;
+    riskBonus = 180;
+    riskLabel = "Dengeli Karar";
   }
 
   if (evidenceCount >= 3) {
-    baseMoney = 450;
-    baseReputation = 7;
+    baseMoney = 250;
+    baseReputation = 3;
+    riskBonus = 0;
+    riskLabel = "Güvenli Karar";
   }
 
   const streakBonus = state.correctStreak >= 2
-    ? state.correctStreak * 50
+    ? state.correctStreak * 70
     : 0;
 
   return {
-    moneyChange: baseMoney + streakBonus,
+    moneyChange: baseMoney + riskBonus + streakBonus,
     reputationChange: baseReputation,
-    streakBonus
+    streakBonus,
+    riskBonus,
+    riskLabel
   };
 }
 
